@@ -2359,12 +2359,32 @@ def prefilter(tsysline,block,maxlim):
     
     
 class BLwisdom():
-    def __init__(self,wis={}):
+    def __init__(self,logFileName='',idx=0):
         '''
         '''
-        self.wis=wis
+        self.wis=None
         self.odir='BLwisdom'
+        self.idx=idx
+        self.logFileName=logFileName
         
+    def have_wisdom(self):
+        return os.path.isfile(self.get_wisdom_fname())
+    
+    def get_wisdom_fname(self):
+        return os.path.join(self.odir,self.logFileName+'.wispkl_%02i' % self.idx)
+    
+    def get_wisdom_vals(self):
+        '''
+        load wisdom and return y values
+        '''
+        self.load()
+        return self.wis['y']
+    
+    def load(self):
+        f= open(self.get_wisdom_fname(), 'rb')
+        self.wis=pickle.load(f)
+        return self.wis
+    
     def store(self,wis):
         '''
         wis - dict('x' : array, 'y' : array, 'x0':array, 'y0': array, 'ridx': list)
@@ -2376,9 +2396,12 @@ class BLwisdom():
         if not os.path.isdir(self.odir):
             os.mkdir(self.odir)
 
-    def save(self,fname):
+    def save(self,fname=None):
         self.checkodir()
-        fname=os.path.join(self.odir,fname)
+        if fname==None:
+            fname=self.get_wisdom_fname()
+        else:
+            fname=os.path.join(self.odir,fname)
         fileObj = open(fname, 'wb')
         pickle.dump(self.wis,fileObj)
         fileObj.close()        
@@ -2480,33 +2503,41 @@ def main(args):
                 removed_idx=[]
 		for i in range(0,len(tptsys)):
                         print('processing experiment: ',logFileName)
+                        blw=BLwisdom(logFileName=logFileName,idx=i)
 			fully=tptsys[i][:]
 			#if len(fully) != len(time_aux):
 			#	continue
 			if not debug:
-				results=Selection(x,fully,block_aux,bbclist[i])
-				delIndX = results.getDeletedX()
-				delIndX.reverse()
-				if delIndX != []:
-					for ind in delIndX:
-						time_aux.pop(ind)
-						block_aux.pop(ind)
-                                removed_idx.append(delIndX)
-				alltsys_aux.append(results.y); 
+                                if blw.have_wisdom():
+                                    alltsys_aux.append(blw.load()['y'])
+                                    print('Using wisdom from file: ',blw.get_wisdom_fname())
+                                else:
+        				results=Selection(x,fully,block_aux,bbclist[i])
+        				delIndX = results.getDeletedX()
+        				delIndX.reverse()
+        				if delIndX != []:
+        					for ind in delIndX:
+        						time_aux.pop(ind)
+        						block_aux.pop(ind)
+                                        removed_idx.append(delIndX)
+        				alltsys_aux.append(results.y); 
 #                                 print 'results: ',alltsys_aux
 #                                 print(len(results.y))
 #                                 print('removed_idx: ',removed_idx)
 #                                 print(len(removed_idx))
-                                print("BL wisdom")
+                                        print("BL wisdom")
 #                                 print('input: ',results.BLwisdom_x0,results.BLwisdom_y0)
 #                                 print('output: ',results.BLwisdom_x,results.BLwisdom_y)
 #                                 print('removed idx: ',results.BLwisdom_removed_idx)
-                                blw=BLwisdom({'x' : results.BLwisdom_x, 'y': results.BLwisdom_y,
-                                              'x0' : results.BLwisdom_x0, 'y0' : results.BLwisdom_y0,
-                                              'ridx' : results.BLwisdom_removed_idx})
-                                blw.save(logFileName+'.wispkl_%02i' % i)
-                                blw.savetxt(logFileName+'.wistxt_%02i' % i)
-                                print('saved wisdom to: {}'.format(logFileName+'.wispkl_%02i'))
+                                        blw.store({'x' : results.BLwisdom_x, 'y': results.BLwisdom_y,
+                                                      'x0' : results.BLwisdom_x0, 'y0' : results.BLwisdom_y0,
+                                                      'ridx' : results.BLwisdom_removed_idx,
+                                                      'title' : bbclist[i],
+                                                      'log' : logFileName,
+                                                      })
+                                        blw.save()
+                                        blw.savetxt(logFileName+'.wistxt_%02i' % i)
+                                        print('saved wisdom to: {}'.format(blw.get_wisdom_fname()))
 #
 			else:
 				alltsys_aux.append(fully)

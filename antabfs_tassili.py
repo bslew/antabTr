@@ -79,6 +79,7 @@ import argparse
 import math
 import struct
 import pydoc
+import pickle
 
 station = ""
 rxgfiles = ""
@@ -1848,11 +1849,15 @@ class antabHeader:
 class Selection(object):	#clase para la selección manual de los datos
 
 	def __init__(self,x,y,block,title):
-
 		sec_loc = mdates.SecondLocator()
 		self.x=np.array(x);self.y=np.array(y);self.block=block;self.title=title
 		self.xrectangle=[];self.yrectangle=[]
 		self.delIndX=[]
+                self.BLwisdom_x0=x
+                self.BLwisdom_y0=y
+                self.BLwisdom_x=[]
+                self.BLwisdom_y=[]
+                self.BLwisdom_removed_idx=[]
 		self.press = False
 		#self.tolerance=0.05
 		self.tolerance=0.1
@@ -1964,8 +1969,10 @@ class Selection(object):	#clase para la selección manual de los datos
 			self.y=np.extract(self.cond,self.y)
 			self.block=np.extract(self.cond,self.block)
 			'''
-			
-			self.y=modifydata(self.x,self.y,self.block,self.xmax,self.xmin,self.ymax,self.ymin)
+			self.y,rem_idcs=modifydata(self.x,self.y,self.block,self.xmax,self.xmin,self.ymax,self.ymin)
+                        self.BLwisdom_removed_idx.extend(rem_idcs)
+                        self.BLwisdom_x=self.x
+                        self.BLwisdom_y=self.y
                         removed_idx=self.y==1
 			self.fit,self.low,self.up,self.inx,self.iny,self.outx,self.outy=outliers(self.block,self.x,self.y,self.tolerance)
 			
@@ -2003,6 +2010,8 @@ class Selection(object):	#clase para la selección manual de los datos
 #-----------------------------------------------------------------------------------------------------
 def modifydata(x,y,block,xmax,xmin,ymax,ymin):
 	cond=(x<xmin)+(x>xmax)+(y<ymin)+(y>ymax)+(y<0)
+        removed_idcs=np.arange(len(y))[np.logical_not(cond)]
+#         print(idcs,len(idcs))
 	for i in range(0,len(cond)):
 		if cond[i]==False:
 			bcond=(np.array(block)==block[i])*cond
@@ -2020,7 +2029,7 @@ def modifydata(x,y,block,xmax,xmin,ymax,ymin):
 			for j in templist:
 				temp=temp*j**(1/float(len(templist)))
 			y[i]=temp
-	return y
+	return y,removed_idcs
 #-----------------------------------------------------------------------------------------------------
 def smfit(x,y):		#fit data, lower and upper limits
 	if len(x)>1:						#it would be convenient to rewrite this without statsmodels, using pyplot and a exp func
@@ -2347,6 +2356,41 @@ def prefilter(tsysline,block,maxlim):
 				tsysline[i][j]=gm
 
 	return tsysline
+    
+    
+class BLwisdom():
+    def __init__(self,wis={}):
+        '''
+        '''
+        self.wis=wis
+        self.odir='BLwisdom'
+        
+    def store(self,wis):
+        '''
+        wis - dict('x' : array, 'y' : array, 'x0':array, 'y0': array, 'ridx': list)
+        '''
+        self.wis=wis
+        return self
+    
+    def checkodir(self):
+        if not os.path.isdir(self.odir):
+            os.mkdir(self.odir)
+
+    def save(self,fname):
+        self.checkodir()
+        fname=os.path.join(self.odir,fname)
+        fileObj = open(fname, 'wb')
+        pickle.dump(self.wis,fileObj)
+        fileObj.close()        
+        
+    def savetxt(self,fname):
+        self.checkodir()
+        fname=os.path.join(self.odir,fname)
+        
+        np.savetxt(fname+'.X',np.column_stack((self.wis['x0'],self.wis['y0'])))
+        np.savetxt(fname+'.Y',np.column_stack((self.wis['x'],self.wis['y'])))
+        np.savetxt(fname+'.ridx',np.asarray(self.wis['ridx'],dtype=int),fmt='%i')
+        
 #-----------------------------------------------------------------------------------------------------
 #-----------------------------------------------------------------------------------------------------
 def main(args):
@@ -2435,6 +2479,7 @@ def main(args):
 		alltsys_aux = []
                 removed_idx=[]
 		for i in range(0,len(tptsys)):
+                        print('processing experiment: ',logFileName)
 			fully=tptsys[i][:]
 			#if len(fully) != len(time_aux):
 			#	continue
@@ -2442,17 +2487,26 @@ def main(args):
 				results=Selection(x,fully,block_aux,bbclist[i])
 				delIndX = results.getDeletedX()
 				delIndX.reverse()
-
 				if delIndX != []:
 					for ind in delIndX:
 						time_aux.pop(ind)
 						block_aux.pop(ind)
                                 removed_idx.append(delIndX)
 				alltsys_aux.append(results.y); 
-                                print 'results: ',alltsys_aux
-                                print(len(results.y))
-                                print('removed_idx: ',removed_idx)
-                                print(len(removed_idx))
+#                                 print 'results: ',alltsys_aux
+#                                 print(len(results.y))
+#                                 print('removed_idx: ',removed_idx)
+#                                 print(len(removed_idx))
+                                print("BL wisdom")
+#                                 print('input: ',results.BLwisdom_x0,results.BLwisdom_y0)
+#                                 print('output: ',results.BLwisdom_x,results.BLwisdom_y)
+#                                 print('removed idx: ',results.BLwisdom_removed_idx)
+                                blw=BLwisdom({'x' : results.BLwisdom_x, 'y': results.BLwisdom_y,
+                                              'x0' : results.BLwisdom_x0, 'y0' : results.BLwisdom_y0,
+                                              'ridx' : results.BLwisdom_removed_idx})
+                                blw.save(logFileName+'.wispkl_%02i' % i)
+                                blw.savetxt(logFileName+'.wistxt_%02i' % i)
+                                print('saved wisdom to: {}'.format(logFileName+'.wispkl_%02i'))
 #
 			else:
 				alltsys_aux.append(fully)

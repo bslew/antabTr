@@ -89,6 +89,7 @@ print('tassili_version=',version)
 
 debug = False
 
+
 ###______________________________________________________________###
 class rxgFile: 
 	'''
@@ -1867,6 +1868,7 @@ class Selection(object):	#clase para la selección manual de los datos
 		self.ax.set_xlabel('Time')
 		self.ax.set_ylabel('Tsys [K]')
 		self.ax.grid()
+         # plt.margins(0.2)
 		
 		self.timeInit = self.x[0]
 		new_x = []
@@ -1899,8 +1901,8 @@ class Selection(object):	#clase para la selección manual de los datos
 		self.xmax = max(self.x)		
 		self.ymin,self.ymax=plt.ylim()
 		xdiff = self.xmax - self.xmin
-		self.xmin=self.xmin-(xdiff*0.01)
-		self.xmax=self.xmax+(xdiff*0.01)
+		self.xmin=self.xmin-(xdiff*0.05)
+		self.xmax=self.xmax+(xdiff*0.05)
 		self.ymin=self.ymin-(self.ymax-self.ymin)*0.01
 		self.ymax=self.ymax+(self.ymax-self.ymin)*0.01
 		plt.xlim((self.xmin,self.xmax))
@@ -1996,8 +1998,8 @@ class Selection(object):	#clase para la selección manual de los datos
 			self.xmax = max(self.x)
 	                self.ymin,self.ymax=plt.ylim()
 			xdiff = self.xmax-self.xmin
-	                self.xmin=self.xmin-(xdiff*0.01)
-	                self.xmax=self.xmax+(xdiff*0.01)
+	                self.xmin=self.xmin-(xdiff*0.05)
+	                self.xmax=self.xmax+(xdiff*0.05)
 	                self.ymin=self.ymin-(self.ymax-self.ymin)*0.01
 	                self.ymax=self.ymax+(self.ymax-self.ymin)*0.01
 	                plt.xlim((self.xmin,self.xmax))

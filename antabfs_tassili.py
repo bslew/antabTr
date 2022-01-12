@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 #-*- coding: utf-8 -*-
 
 #----------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -85,7 +85,7 @@ station = ""
 rxgfiles = ""
 
 version=20201123
-print('tassili_version=',version)
+print(('tassili_version=',version))
 
 debug = False
 
@@ -119,7 +119,7 @@ class rxgFile:
 			rxgfIn = open(fileName, 'r')
 			self.fileContent = rxgfIn.readlines()
 			rxgfIn.close()
-		except Exception, ex:
+		except Exception as ex:
 			raise 
 
 	# --------------------------------------------------------------------------------------------
@@ -199,7 +199,7 @@ class rxgFile:
 		elif param == 'SPILL':
 			lineNumber = 9
 		else:
-			print "Unknown param"
+			print("Unknown param")
 			raise ex
 
 
@@ -434,7 +434,7 @@ class logFile:
 			logfIn = open(fileName, 'r')
 			self.fileContent = logfIn.readlines()
 			logfIn.close()
-		except Exception, ex:
+		except Exception as ex:
 			raise 
 
 		self.freqLOMHzArray = dict()
@@ -746,7 +746,7 @@ class logFile:
 			self.__bw[self.__currentSetup] = dict()
 
 			if not self.__currentSetup in self.calModeName:
-				print "Calibration mode not found for setup %s.\nSINGLE calibration mode will be assumed as used by setup %s." % (self.__currentSetup,self.__currentSetup)
+				print("Calibration mode not found for setup %s.\nSINGLE calibration mode will be assumed as used by setup %s." % (self.__currentSetup,self.__currentSetup))
 				self.calModeName[self.__currentSetup] = "SINGLE"
 				self.lastCalMode = self.calModeName[self.__currentSetup]
                                 if not self.__currentSetup in self.__setupTcal:
@@ -1059,7 +1059,7 @@ class logFile:
 			try:
 				newFreq = float(auxStr[1])						#	newFreq = 42500.0
 			except:
-				print "Couldn't convert '%s' to float. Ignoring current line: '%s'" % (auxStr[1],line)
+				print("Couldn't convert '%s' to float. Ignoring current line: '%s'" % (auxStr[1],line))
 				return True
 			newPol = auxStr[3]							#	newPol = 'rcp'
 			newBand = auxStr[2]							#	newBand = 'usb'
@@ -1239,7 +1239,7 @@ class logFile:
 					if self.__tempDict[3]:
 						tpidiffList = self.__tempDict[3][i]
 						
-				except Exception, e:							# Tsys cannot be calculated if there is any exception getting temperature variables
+				except Exception as e:							# Tsys cannot be calculated if there is any exception getting temperature variables
 					temp.append(-1)					# from temperature dictionaries for a certain DBBC channel.
 					continue				
 				if len(tpidiffList) != 0:
@@ -1302,9 +1302,9 @@ class logFile:
 			tpcontDet = False		
 
 		if tpcontDet:										# tpicd line using CONTINUOUS calibration mode: 
-                	auxRange = range(0,len(auxStr),3)						# 	'#tpicd#tpcont/9l,17453,16984,9u,17553,17100,ic,1464.25'
+                	auxRange = list(range(0,len(auxStr),3))						# 	'#tpicd#tpcont/9l,17453,16984,9u,17553,17100,ic,1464.25'
                 else:											#	- Each individual DBBC channel has two temperature values
-                        auxRange = range(0,len(auxStr),2)						# tpicd line using SINGLE calibration mode:
+                        auxRange = list(range(0,len(auxStr),2))						# tpicd line using SINGLE calibration mode:
 													#	'#tpicd#tpi/a05,23980,a06,45220,a07,58900,a08,62240,a09,67080,a10,78810,a11,96400'
                 for i in auxRange:									#	- Each individual DBBC channel has one temperature value
                         dictExist = False
@@ -1442,7 +1442,7 @@ class logFile:
                 fLOArray_aux, pArray = self.loPArray()
                 #fLOArray = sorted(set(fLOArray_aux), key=lambda x: fLOArray_aux.index(x))
 		fLOArray = dict()
-		for setup in reversed(fLOArray_aux.keys()):
+		for setup in reversed(list(fLOArray_aux.keys())):
 			fLOArray[setup] = sorted(set(fLOArray_aux[setup]), key=lambda x: fLOArray_aux[setup].index(x))
 
                 return fLOArray
@@ -1455,7 +1455,7 @@ class logFile:
 		fLOArray = dict() 
 		pArray = dict()
 
-		for setup in reversed(self.polArray.keys()):
+		for setup in reversed(list(self.polArray.keys())):
 			fLOArray[setup] = []
 			pArray[setup] = []
 			tup = []
@@ -1508,7 +1508,7 @@ class logFile:
 		fLOArray = self.loArray()
 		rxgFileArray = dict()
 
-		for setup in reversed(fLOArray.keys()):
+		for setup in reversed(list(fLOArray.keys())):
 			rxgFileArray[setup] = []			
 			for fLO in fLOArray[setup]:
 				rxgName = self.getRXGFileName(fLO)
@@ -1573,8 +1573,8 @@ class logFile:
 							break
 						else:
 							pass
-				except Exception, ex:
-					print "Error getting LO freq"
+				except Exception as ex:
+					print("Error getting LO freq")
 					raise ex
 				del rxgF
 		return fileRXG
@@ -1614,11 +1614,11 @@ class antabHeader:
 		linerxg = []
 		fLOArray, polArray = self.logF.loPArray()
 		
-		for setup in reversed(fLOArray.keys()):
+		for setup in reversed(list(fLOArray.keys())):
 			i = 0
 			for fLO in fLOArray[setup]:
 				rxgFileName = self.logF.getRXGFileName(fLO)
-				print rxgFileName
+				print(rxgFileName)
 				rxgF = rxgFile(rxgFileName)
 
 				linerxg.append(	"%.2f MHz %s: %s %s" % (fLO, polArray[setup][i], rxgF.name(), rxgF.date()) )
@@ -1641,7 +1641,7 @@ class antabHeader:
 		header = logData[0]
 		#index = 0
 
-		for setup in reversed(rxgFilesArray.keys()):	
+		for setup in reversed(list(rxgFilesArray.keys())):	
 			dpfuLineArray[setup] = []
 			for rxgFileName in sorted(set(rxgFilesArray[setup])):
 				strLine = ""
@@ -1703,7 +1703,7 @@ class antabHeader:
 		polyLineArray = dict()
 		rxgFilesArray = self.logF.rxgFiles()
 
-		for setup in reversed(rxgFilesArray.keys()):
+		for setup in reversed(list(rxgFilesArray.keys())):
 			polyLineArray[setup] = []
 			for rxgFileName in sorted(set(rxgFilesArray[setup])):
 				strLine = ""
@@ -1738,7 +1738,7 @@ class antabHeader:
 
 		fLOMHzArray, polArray = self.logF.loPArray()
 
-		setups = fLOMHzArray.keys()
+		setups = list(fLOMHzArray.keys())
 		setups.sort()
 
 		for setup in setups:
@@ -1824,7 +1824,7 @@ class antabHeader:
 		fLOMHzArray = self.logF.loArray()
 		wavebandArray = []
 
-		for setup in reversed(fLOMHzArray.keys()):
+		for setup in reversed(list(fLOMHzArray.keys())):
 			for freqLO in fLOMHzArray[setup]:
 				"""
 				if freqLO > 1500 and freqLO < 2400:
@@ -1915,12 +1915,12 @@ class Selection(object):	#clase para la selección manual de los datos
 		for item in self.ax.get_xticklabels():
 			text = item.get_text()
 			if text != '':
-				text = text.replace(u'\u2212','')
+				text = text.replace('\u2212','')
 				value = (int(float(text))/(24.*60.)) + self.timeInit
 				day = int(value)
 				hour = int((value - day)*24)
 				minute = (value - day - (hour/24.))*24*60
-				text = u'%d %02d:%05.2f' % (day,hour,minute)
+				text = '%d %02d:%05.2f' % (day,hour,minute)
 			self.labels.append(text)
 		self.ax.set_xticklabels(self.labels)
 		plt.show()
@@ -2075,7 +2075,7 @@ def finalplot(x,y,bbclist,partNum):	#plot all procesed data
 			day = int(value)
 			hour = int((value - day)*24)
 			minute = (value - day - (hour/24.))*24*60
-			text = u'%d %02d:%05.2f' % (day,hour,minute)
+			text = '%d %02d:%05.2f' % (day,hour,minute)
 		labels.append(text)
 	ax.set_xticklabels(labels)
 	plt.show()
@@ -2133,7 +2133,7 @@ def get_tcal(lofq,pol,freq,station):
 					if rmin<=lofq<=rmax:
 						fileok=True
 						if debug:
-							print "Using %s RXG file" % filename
+							print("Using %s RXG file" % filename)
 					else:
 						break
 				elif f[i][0:5]=='fixed':
@@ -2141,7 +2141,7 @@ def get_tcal(lofq,pol,freq,station):
 					if rmin<=lofq<=rmax:
 						fileok=True
 						if debug:
-							print "Using %s RXG file" % filename
+							print("Using %s RXG file" % filename)
 					else:
 						break
 				if fileok and i < len(f)-1:
@@ -2154,9 +2154,9 @@ def get_tcal(lofq,pol,freq,station):
 			if tcal!=0:
 				break
 	if fileok==False:
-		print "tcal = %g" % tcal
+		print("tcal = %g" % tcal)
 		#sys.exit('A suitable rxg_file was not found')
-		print 'A suitable rxg_file was not found. Maybe tcal is inside LOG file ("caltemp" tag)'
+		print('A suitable rxg_file was not found. Maybe tcal is inside LOG file ("caltemp" tag)')
 	return tcal
 #-----------------------------------------------------------------------------------------------------
 def write_antab(fileOut,header,indexline,scanline,tsysline,block,time, tsyslog, setupTime, dpfuLines, polyelevLine, stationName):
@@ -2434,7 +2434,7 @@ def main(args):
 		pass
 	else:
 		logFileName = str(args[-1])
-		print logFileName
+		print(logFileName)
 		global station
 		station = logFileName[-6:-4]
 # 		logFileName = "/home/motylek/%s" % (str(args[-1]))		
@@ -2500,11 +2500,11 @@ def main(args):
 		tptsys=prefilter(tptsys,block_aux,maxlim)	#filter negative values
 
 		#loop analizing all bbcs
-		print 'Draw a rectangle over the points that you want to delete. Then, close the window.'
+		print('Draw a rectangle over the points that you want to delete. Then, close the window.')
 		alltsys_aux = []
                 removed_idx=[]
 		for i in range(0,len(tptsys)):
-                        print('processing experiment: ',logFileName)
+                        print(('processing experiment: ',logFileName))
                         blw=BLwisdom(logFileName=logFileName,idx=i)
 			fully=tptsys[i][:]
 			#if len(fully) != len(time_aux):
@@ -2512,7 +2512,7 @@ def main(args):
 			if not debug:
                                 if blw.have_wisdom():
                                     alltsys_aux.append(blw.load()['y'])
-                                    print('Using wisdom from file: ',blw.get_wisdom_fname())
+                                    print(('Using wisdom from file: ',blw.get_wisdom_fname()))
                                 else:
         				results=Selection(x,fully,block_aux,bbclist[i])
         				delIndX = results.getDeletedX()
@@ -2539,7 +2539,7 @@ def main(args):
                                                       })
                                         blw.save()
                                         blw.savetxt(logFileName+'.wistxt_%02i' % i)
-                                        print('saved wisdom to: {}'.format(blw.get_wisdom_fname()))
+                                        print(('saved wisdom to: {}'.format(blw.get_wisdom_fname())))
 #
 			else:
 				alltsys_aux.append(fully)
@@ -2563,7 +2563,7 @@ def main(args):
 		startInd = endInd
 
 	#print 'Close the plot and choose an option:'
-	save=raw_input('Would you like to save the results? y/n: ')
+	save=input('Would you like to save the results? y/n: ')
 	if save == 'y':
 		dpfuLines, polyelevLine = antabH.writeAntabPreamble(antabFile)		
 		tsyswrite = None
@@ -2602,9 +2602,9 @@ def main(args):
 
 		#write_antab(antabFile, header, indexline, scanline, tsyswrite, block, time, tsyslog, setupTime, dpfuLines, polyelevLine, logF.stationName)
 		write_antab(antabFile, header, indexline, scanline, tsyswrite, blockwrite, timewrite, tsyslog, setupTime, dpfuLines, polyelevLine, logF.stationName)
-		print 'Results in file %s' % antabFile
+		print('Results in file %s' % antabFile)
 	else:
-		print 'Results not saved'
+		print('Results not saved')
 #-----------------------------------------------------------------------------------------------------
 def usage():
     pydoc.pager(
@@ -2636,5 +2636,5 @@ if __name__=='__main__':
 	elif len(sys.argv) == 4 and '-f' in sys.argv:
 		rxg = sys.argv[2]
 		rxgfiles = rxg.split(',')
-		print rxgfiles
+		print(rxgfiles)
 		main(sys.argv)

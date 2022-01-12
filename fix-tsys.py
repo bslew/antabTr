@@ -45,6 +45,6 @@ for line in all:
         newtpi=("%s,%s " % (newline[i],newline[i+1]))
         newtpil.append(newtpi)
     tmpline2=''.join(str(item) for item in newtpil)
-    print("%s/%s" % (tmpline[0],tmpline2[:-1]))
+    print(("%s/%s" % (tmpline[0],tmpline2[:-1])))
   else:
-    print(line[:-1])
+    print((line[:-1]))

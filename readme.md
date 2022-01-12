@@ -25,14 +25,15 @@ Download the package from git repository
 
 ## Installation steps
 
-` cd antabTr`
+` cd antabTr
 
-`python3 -m venv venv`
+python3 -m venv venv
 
-`. venv/bin/activate`
+. venv/bin/activate
 
-`pip install --upgrade pip`
-`pip install -r requirements.txt`
+pip install --upgrade pip
+
+pip install -r requirements.txt`
 
 
 

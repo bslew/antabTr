@@ -25,15 +25,12 @@ Download the package from git repository
 
 ## Installation steps
 
-` cd antabTr
-
+`cd antabTr
 python3 -m venv venv
-
 . venv/bin/activate
-
 pip install --upgrade pip
-
-pip install -r requirements.txt`
+pip install -r requirements.txt
+`
 
 
 
@@ -41,7 +38,7 @@ pip install -r requirements.txt`
 
 Use antabfs_tassili.py from vitrual environment, i.e:
 
-` cd antabTr`
+`cd antabTr`
 `. venv/bin/activate`
 `python antab_tassili.py`
 

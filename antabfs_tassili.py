@@ -1854,11 +1854,12 @@ class Selection(object):    #clase para la selección manual de los datos
         self.x=np.array(x);self.y=np.array(y);self.block=block;self.title=title
         self.xrectangle=[];self.yrectangle=[]
         self.delIndX=[]
-        self.BLwisdom_x0=x
-        self.BLwisdom_y0=y
-        self.BLwisdom_x=[]
-        self.BLwisdom_y=[]
-        self.BLwisdom_removed_idx=[]
+        self.wisdom={'x0' : x, 'y0': y, 'x': [], 'y':[], 'ridx' : []}
+        # self.BLwisdom_x0=x
+        # self.BLwisdom_y0=y
+        # self.BLwisdom_x=[]
+        # self.BLwisdom_y=[]
+        # self.BLwisdom_removed_idx=[]
         self.press = False
         #self.tolerance=0.05
         self.tolerance=0.1
@@ -1972,9 +1973,9 @@ class Selection(object):    #clase para la selección manual de los datos
             self.block=np.extract(self.cond,self.block)
             '''
             self.y,rem_idcs=modifydata(self.x,self.y,self.block,self.xmax,self.xmin,self.ymax,self.ymin)
-            self.BLwisdom_removed_idx.extend(rem_idcs)
-            self.BLwisdom_x=self.x
-            self.BLwisdom_y=self.y
+            self.wisdom['ridx'].extend(rem_idcs)
+            self.wisdom['x']=self.x
+            self.wisdom['y']=self.y
             removed_idx=self.y==1
             self.fit,self.low,self.up,self.inx,self.iny,self.outx,self.outy=outliers(self.block,self.x,self.y,self.tolerance)
             
@@ -2373,7 +2374,8 @@ class BLwisdom():
         return os.path.isfile(self.get_wisdom_fname())
 
     def get_wisdom_fname(self):
-        return os.path.join(self.odir,self.logFileName+'.wispkl_%02i' % self.idx)
+        # return os.path.join(self.odir,self.logFileName+'.wispkl_%02i' % self.idx)
+        return os.path.join(self.odir,self.logFileName+'.%02i.awpkl' % self.idx)
 
     def get_wisdom_vals(self):
         '''
@@ -2531,14 +2533,14 @@ def main(args):
 #                 print('input: ',results.BLwisdom_x0,results.BLwisdom_y0)
 #                 print('output: ',results.BLwisdom_x,results.BLwisdom_y)
 #                 print('removed idx: ',results.BLwisdom_removed_idx)
-                    blw.store({'x' : results.BLwisdom_x, 'y': results.BLwisdom_y,
-                              'x0' : results.BLwisdom_x0, 'y0' : results.BLwisdom_y0,
-                              'ridx' : results.BLwisdom_removed_idx,
+                    blw.store({'x' : results.wisdom['x'], 'y': results.wisdom['y'],
+                              'x0' : results.wisdom['x0'], 'y0' : results.wisdom['y'],
+                              'ridx' : results.wisdom['ridx'],
                               'title' : bbclist[i],
                               'log' : logFileName,
                               })
                     blw.save()
-                    blw.savetxt(logFileName+'.wistxt_%02i' % i)
+                    # blw.savetxt(logFileName+'.wistxt_%02i' % i)
                     print(('saved wisdom to: {}'.format(blw.get_wisdom_fname())))
 #
             else:

@@ -49,12 +49,12 @@ Use antabfs_tassili.py in the same way as the original antabfs.py program.
 If you want to share the data gathered by this program execute 
 
 ```
-./export_wistom.sh
+./export_wisdom.sh
 ```
 
 script. The wisdom files are stored by default in ~/.config/antabTr/ subdirectory.
 
 
-#AUTHOR
+# AUTHOR
 Bartosz Lew [<bartosz.lew@umk.pl>](bartosz.lew@umk.pl)
 

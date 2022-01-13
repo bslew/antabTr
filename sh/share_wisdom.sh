@@ -1,8 +1,8 @@
 #!/bin/bash
 
 if [ $# -eq 0 ]; then
-	echo share_wisdom.sh [wisDir]
-	Note: This script should be called by share_wisdom.py
+	echo "USAGE: share_wisdom.sh [wisDir]"
+	echo "Note: This script should be called by share_wisdom.py"
 	exit 0
 fi
 

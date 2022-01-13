@@ -123,9 +123,26 @@ please send your public ssh-key to the author.
 In time, the wisdom will be made publicly available via [antab-wisdom](https://github.com/bslew/antab-wisdom)
 repository.
 
+### What is shared exactly?
+
+Only wisdom files are being shared. Wisdom files are pickled dictionaries containing the name of log file,
+the input Tsys data, cleaned Tsys data and indexes of points that were removed by the user for each bbc.
+The naming of the wisdom files follows convention:
+
+`yyyy-mm.logfile_prefix.user_name.bbc.awpkl`
+
+where:
+- yyyy-mm are year and month at saving time
+- logfile_prefix is the log file name without extension (VLBI experiment)
+- user_name is the value of the $USER environment variable
+- bbc - an integer
+- awpkl - wisdom files extension
+
 ## Multiple uploads
 If you shared the wisdom once and then decided to correct and regenerate the antab files you can
-share_wisdom.py again. The files will be uploaded again and their previous version will be overwritten.
+share_wisdom.py again. The files will be uploaded again and their previous version will be overwritten if
+the updated version of the antab files is generated the same month as the previous one which results from
+the naming convention of the wisdom files.
 
 # AUTHOR
 Bartosz Lew [<bartosz.lew@umk.pl>](bartosz.lew@umk.pl)

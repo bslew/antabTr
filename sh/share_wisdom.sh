@@ -7,7 +7,7 @@ if [ $# -eq 0 ]; then
 fi
 
 wisDir=$1
-dst=deepsky.astro.umk.pl
+#dst=deepsky.astro.umk.pl
 #rsync -au wisdom/*.awpkl $dst
 echo "put $wisDir/*.awpkl wisdom/data/" |sftp vlbeer@deepsky.astro.umk.pl
 

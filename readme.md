@@ -55,6 +55,7 @@ Perform eg:
 ```
 cp antabfs.ini ~/.config/antabfs/antabfs.ini
 cd python3 && python setup.py install
+cd ..
 
 ```
 
@@ -83,7 +84,7 @@ If you want to share the wisdom gathered by this program after your antab files
 are ready to export to VLBeer you can execute 
 
 ```
-share_wisdom.sh
+share_wisdom.py
 ```
 
 script in the directory where you started antabTr.py program.

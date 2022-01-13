@@ -26,7 +26,7 @@ git clone git@github.com:bslew/antabTr.git
 
 Download the package from git repository
 
-## Manual installation 
+## Installation steps
 
 Change directory to newly donwloaded antabTr repository, create and activate virtual environment,
 update it and install required packages.
@@ -37,6 +37,7 @@ python3 -m venv venv
 . venv/bin/activate
 pip install --upgrade pip
 pip install -r requirements.txt
+
 ```
 
 Make sure the venv is located in antabTr subdirectory.
@@ -53,6 +54,14 @@ Perform eg:
 
 ```
 cp antabfs.ini ~/.config/antabfs/antabfs.ini
+cd python3 && python setup.py install
+
+```
+
+or execute
+
+```
+make install
 ```
 
 Now edit ~/.config/antabfs/antabfs.ini config file to match your preferences.

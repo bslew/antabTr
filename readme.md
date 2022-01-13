@@ -19,7 +19,7 @@ made visible to other contributors.
 # DOWNLOAD
 
 ```
-git clone git@github.com:bslew/antabTr.git
+git clone https://github.com/bslew/antabTr.git
 ```
 
 # INSTALL

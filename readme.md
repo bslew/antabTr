@@ -79,7 +79,7 @@ cd antabTr
 ```
 
 "(venv)" prompt will appear to indicate you are in the virtual environment.
-Go to your logs directory and use the modified antabTr.py program instead of antabfs.py:
+Go to your logs directory and use the antabTr.py program instead of antabfs.py:
 
 ```
 antabTr.py ea065btr.log
@@ -88,32 +88,44 @@ antabTr.py ea065btr.log
 # Wisdom
 
 antabTr.py program should be used in the same way as the original antabfs.py program. 
-This version however stores information about how to reduce your data. If you cancel execution
-before you save your final .antab file and then restart processing the same log file,
+Any preprocessing steps that were possible performed before using antabfs.py should also be
+performed when using antabTr.py. The Makefile scripts makes some of that easier, but using 
+the Makefile pipeline is currently in experimental stage.
+
+## Storing wisdom files
+antabTr.py automatically stores information about how the user reduces the data. If you cancel execution
+before saving your final .antab file and then restart processing the same log file,
 the program will continue from the point your left off using the wisdom data stored in the local
 directory. 
 
-If you wish to redo your log file again without loading wisdom from the previous run, simply
+## Correcting/re-generating antab files
+
+If you wish to reprocess your log file all over again without loading the wisdom from the previous run, simply
 go to the wisdom directory and remove the file[s] corresponding to that log file.
 
+## Sharing
 It will be useful if you decide to share the wisdom gathered by this program after your antab files
 are prepared and ready to export to VLBeer. After all, this is one of the reasons for writing
-this modification to the original program. To share the wisdom execute:
+this variation of the original program. In order to share the wisdom execute:
 
 ```
 share_wisdom.py
 ```
 
 script in the directory where you started antabTr.py program.
-The wisdom files will be sent to remote server in order to improve machine learning process
+The wisdom files will be sent to a remote server in order to improve machine learning training process
 that will eventually remove the need for manual preparation of antab files.
 
-The server will ask you for password, which is the same as the one used for uploading antab files
-to VLBeer. Alternatively, if you do not want to enter password every time you run this script,
+The server will ask you for a password, which is the same as the one used for uploading antab files
+to VLBeer. Alternatively, if you do not want to enter the password every time you run this script,
 please send your public ssh-key to the author.
 
-In time, the wisdom will be made publicly available.
+In time, the wisdom will be made publicly available via [antab-wisdom](https://github.com/bslew/antab-wisdom)
+repository.
 
+## Multiple uploads
+If you shared the wisdom once and then decided to correct and regenerate the antab files you can
+share_wisdom.py again. The files will be uploaded again and their previous version will be overwritten.
 
 # AUTHOR
 Bartosz Lew [<bartosz.lew@umk.pl>](bartosz.lew@umk.pl)

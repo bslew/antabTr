@@ -11,7 +11,7 @@ VENV=venv
 
 install: 
 	-mkdir -p $(HOME)/.config/antabfs/
-	@echo "This will override your current config file. Press enter to continue..."
+	@echo "This will override your current config file ($(HOME)/.config/antabfs/antabfs.ini). Press enter to continue..."
 	@read
 	cp antabfs.ini $(HOME)/.config/antabfs/antabfs.ini
 	@echo "done"

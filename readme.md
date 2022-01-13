@@ -3,8 +3,8 @@
 This package ports the antabfs program 
 (see [VLBI-utilities](https://github.com/evn-vlbi/VLBI-utilities) repository) 
 to python3 and implements gathering users' inputs to facilitate machine learning 
-approach to generating antab files automatically. It also unifies tabs/spaces convention 
-and introduces experimental processing pipeline and provides support for configuration files.
+approach to generating antab files automatically. It also unifies tabs/spaces convention, 
+introduces experimental processing pipeline and provides support for configuration files.
 
 This program is developed at Toruń VLBI station.
 
@@ -88,7 +88,7 @@ antabTr.py ea065btr.log
 # Wisdom
 
 antabTr.py program should be used in the same way as the original antabfs.py program. 
-Any preprocessing steps that were possible performed before using antabfs.py should also be
+Any pre-processing steps that were possible performed before using antabfs.py should also be
 performed when using antabTr.py. The Makefile scripts makes some of that easier, but using 
 the Makefile pipeline is currently in experimental stage.
 

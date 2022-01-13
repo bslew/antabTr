@@ -91,7 +91,10 @@ antabTr.py program should be used in the same way as the original antabfs.py pro
 This version however stores information about how to reduce your data. If you cancel execution
 before you save your final .antab file and then restart processing the same log file,
 the program will continue from the point your left off using the wisdom data stored in the local
-directory.
+directory. 
+
+If you wish to redo your log file again without loading wisdom from the previous run, simply
+go to the wisdom directory and remove the file[s] corresponding to that log file.
 
 It will be useful if you decide to share the wisdom gathered by this program after your antab files
 are prepared and ready to export to VLBeer. After all, this is one of the reasons for writing

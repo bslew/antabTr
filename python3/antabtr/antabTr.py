@@ -4,6 +4,7 @@
 #----------------------------------------------------------------------------------------------------------------------------------------------------------
 # Alberto Moreno, Pablo de Vicente (Obs. de Yebes) 2015 - 2016
 # Francisco Javier Beltran (Obs. de Yebes) 2016 - 2019
+# Bartosz Lew (Institute of Astronomy, Nicolaus Copernicus University) 2021
 #
 # who      when       what
 # --------     ----------     -----------------------------------------------------------------------------------------------------------------------------
@@ -80,6 +81,7 @@ import math
 import struct
 import pydoc
 import pickle
+from antabtr import config_file, wisdom
 
 station = ""
 rxgfiles = ""
@@ -88,7 +90,6 @@ version=20201123
 print(('tassili_version=',version))
 
 debug = False
-
 
 ###______________________________________________________________###
 class rxgFile:
@@ -414,7 +415,7 @@ class logFile:
     '''
 
     #-----------------------------------------------------------------------------------------------------
-    def __init__(self, fileName):
+    def __init__(self, fileName, cfg=None):
         '''Constructor.
         It opens the LOG file, reads its content and closes it. The content is stored in a private variable: self.fileContent
         Other variables are also stored like:
@@ -423,7 +424,9 @@ class logFile:
         @param fileName. Name of the LOG file including the PATH
         '''
 
-        self.__rxgDirectory = "/home/blew/programy/antab/data/rxg_files"
+        self.cfg=cfg
+        self.__rxgDirectory=cfg['CALIB']['rxgDir']
+        # self.__rxgDirectory = "/home/blew/programy/antab/data/rxg_files"
         #self.__rxgDirectory = "/usr2/oper/antabfs_pruebas/rxg_files"
 
         self.logname = fileName.split('/')[-1]
@@ -822,7 +825,7 @@ class logFile:
                     bbcFreq = self.__bbcfq[self.__currentSetup][i]
 
                 fchan=lofq+bbcFreq-bw_aux/2.
-                tcal=get_tcal(lofq,pol,fchan, self.station().lower())
+                tcal=get_tcal(lofq,pol,fchan, self.station().lower(),cfg=self.cfg)
 
                 if not self.__caltempRead[self.__currentSetup]:
                     self.__tempDict[-1][i] = [tcal]                
@@ -1596,7 +1599,7 @@ class antabHeader:
 
     # --------------------------------------------------------------------------------------------
     """
-    def __init__(self, logFileObject): # FJB
+    def __init__(self, logFileObject, cfg=None): # FJB
         '''Constructor which uses the log file object to create some private variables:
         self.logF, self.expName, self.stationName, self.rxgDirectory
         '''
@@ -1604,7 +1607,10 @@ class antabHeader:
         self.logF = logFileObject
         self.expName = self.logF.experiment()
         self.stationName = self.logF.station()
-        self.rxgDirectory = "/home/blew/programy/antab/data/rxg_files"
+        self.cfg=cfg
+        self.rxgDirectory=cfg['CALIB']['rxgDir']
+
+        # self.rxgDirectory = "/home/blew/programy/antab/data/rxg_files"
         #self.rxgDirectory = "/usr2/oper/antabfs_pruebas/rxg_files"
 
     def rxgLines(self):
@@ -2102,8 +2108,10 @@ def outliers(block,x,y,tolerance):
     outy=np.extract(outcond,y)
     return fit,low,up,inx,iny,outx,outy
 #-----------------------------------------------------------------------------------------------------
-def get_tcal(lofq,pol,freq,station):
-    caldir='/home/blew/programy/antab/data/rxg_files/'
+def get_tcal(lofq,pol,freq,station,cfg=None):
+    caldir=cfg['CALIB']['rxgDir']
+
+    # caldir='/home/blew/programy/antab/data/rxg_files/'
     #caldir='/usr2/oper/antabfs_pruebas/rxg_files/'
     # If rxgfiles are provided check them, otherwhise look into cal dir
     global rxgfiles
@@ -2361,62 +2369,6 @@ def prefilter(tsysline,block,maxlim):
     return tsysline
 
 
-class BLwisdom():
-    def __init__(self,logFileName='',idx=0):
-        '''
-        '''
-        self.wis=None
-        self.odir='wisdom'
-        self.idx=idx
-        self.logFileName=logFileName
-
-    def have_wisdom(self):
-        return os.path.isfile(self.get_wisdom_fname())
-
-    def get_wisdom_fname(self):
-        # return os.path.join(self.odir,self.logFileName+'.wispkl_%02i' % self.idx)
-        return os.path.join(self.odir,self.logFileName+'.%02i.awpkl' % self.idx)
-
-    def get_wisdom_vals(self):
-        '''
-        load wisdom and return y values
-        '''
-        self.load()
-        return self.wis['y']
-
-    def load(self):
-        f= open(self.get_wisdom_fname(), 'rb')
-        self.wis=pickle.load(f)
-        return self.wis
-
-    def store(self,wis):
-        '''
-        wis - dict('x' : array, 'y' : array, 'x0':array, 'y0': array, 'ridx': list)
-        '''
-        self.wis=wis
-        return self
-
-    def checkodir(self):
-        if not os.path.isdir(self.odir):
-            os.mkdir(self.odir)
-
-    def save(self,fname=None):
-        self.checkodir()
-        if fname==None:
-            fname=self.get_wisdom_fname()
-        else:
-            fname=os.path.join(self.odir,fname)
-        fileObj = open(fname, 'wb')
-        pickle.dump(self.wis,fileObj)
-        fileObj.close()    
-
-    def savetxt(self,fname):
-        self.checkodir()
-        fname=os.path.join(self.odir,fname)
-
-        np.savetxt(fname+'.X',np.column_stack((self.wis['x0'],self.wis['y0'])))
-        np.savetxt(fname+'.Y',np.column_stack((self.wis['x'],self.wis['y'])))
-        np.savetxt(fname+'.ridx',np.asarray(self.wis['ridx'],dtype=int),fmt='%i')
 
 #-----------------------------------------------------------------------------------------------------
 #-----------------------------------------------------------------------------------------------------
@@ -2431,6 +2383,7 @@ def main(args):
     #return
 
 
+    cfg=config_file.readConfigFile()
     logFileName = str(args[-1])
     if '/' in str(args[-1]):
         pass
@@ -2446,9 +2399,9 @@ def main(args):
 #    antabFile = os.path.dirname(os.path.abspath(__file__)) + ('/%s.antabfs' % (logFileName.split('/')[-1].split('.')[0]))
     antabFile = os.path.join(os.path.dirname(logFileName),'%s.antabfs' % (logFileName.split('/')[-1].split('.')[0]))
 
-    logF = logFile(logFileName)
+    logF = logFile(logFileName,cfg=cfg)
     #antabH = antabHeader(logFileName)
-    antabH = antabHeader(logF)  #FJB
+    antabH = antabHeader(logF,cfg=cfg)  #FJB
 
     bbclist=[];tsyswrite=[]
     tsyswrite_aux = []
@@ -2507,14 +2460,14 @@ def main(args):
         removed_idx=[]
         for i in range(0,len(tptsys)):
             print(('processing experiment: ',logFileName))
-            blw=BLwisdom(logFileName=logFileName,idx=i)
+            blw=wisdom.UserWisdom(cfg=cfg,logFileName=logFileName,idx=i)
             fully=tptsys[i][:]
             #if len(fully) != len(time_aux):
             #    continue
             if not debug:
                 if blw.have_wisdom():
                     alltsys_aux.append(blw.load()['y'])
-                    print(('Using wisdom from file: ',blw.get_wisdom_fname()))
+                    print('Using wisdom from file: {}'.format(blw.get_wisdom_fname()))
                 else:
                     results=Selection(x,fully,block_aux,bbclist[i])
                     delIndX = results.getDeletedX()
@@ -2529,7 +2482,6 @@ def main(args):
 #                 print(len(results.y))
 #                 print('removed_idx: ',removed_idx)
 #                 print(len(removed_idx))
-                    print("BL wisdom")
 #                 print('input: ',results.BLwisdom_x0,results.BLwisdom_y0)
 #                 print('output: ',results.BLwisdom_x,results.BLwisdom_y)
 #                 print('removed idx: ',results.BLwisdom_removed_idx)
@@ -2541,7 +2493,7 @@ def main(args):
                               })
                     blw.save()
                     # blw.savetxt(logFileName+'.wistxt_%02i' % i)
-                    print(('saved wisdom to: {}'.format(blw.get_wisdom_fname())))
+                    print('Saved wisdom to: {}'.format(blw.get_wisdom_fname()))
 #
             else:
                 alltsys_aux.append(fully)
@@ -2605,6 +2557,8 @@ def main(args):
         #write_antab(antabFile, header, indexline, scanline, tsyswrite, block, time, tsyslog, setupTime, dpfuLines, polyelevLine, logF.stationName)
         write_antab(antabFile, header, indexline, scanline, tsyswrite, blockwrite, timewrite, tsyslog, setupTime, dpfuLines, polyelevLine, logF.stationName)
         print('Results in file %s' % antabFile)
+        wisdom.UserWisdom(cfg).wisdom_info()
+
     else:
         print('Results not saved')
 #-----------------------------------------------------------------------------------------------------

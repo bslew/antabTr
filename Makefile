@@ -4,10 +4,21 @@ SCHED=sessions/${SESSION}/EVNSchedule.txt
 SESSION=sessions/May-Jun21
 SESSION=`dirname ${SCHED}`
 LOGDIR=${SESSION}/logs
+VENV=venv
 
 #check_dir:
 #	-mkdir -p ${LOGDIR}
 
+install: 
+	-mkdir -p $(HOME)/.config/antabfs/
+	@echo "This will override your current config file. Press enter to continue..."
+	@read
+	cp antabfs.ini $(HOME)/.config/antabfs/antabfs.ini
+	@echo "done"
+
+	source ${VENV}/bin/activate && cd python3 && python setup.py install
+	source ${VENV}/bin/activate && cp sh/share_wisdom.sh ${VENV}/bin
+	
 dw_example:
 	scp oper@fs6:/usr2/log/gm076tr.log log
 
@@ -23,7 +34,7 @@ plot_rxg:
 logs: projs dw_logs clean_logs fix_logs
 
 dirs:
-	-mkdir -p ${LOGDIR}
+	-mkdir -p ${LOGDIR} 
 
 projs: dirs
 	@dos2unix ${SCHED}
@@ -46,9 +57,9 @@ fix_logs:
 	cd ${LOGDIR} && for l in `ls *.log`; do echo $$l;  python ../../../fix-tsys.py $$l > $$l.fixed ;  mv  $$l.fixed  $$l; done
 
 check_venv:
-	source venv/bin/activate
+	source ${VENV}/bin/activate
 antab: 
-	. venv/bin/activate && cd ${LOGDIR} && for l in `ls *.log`; do  ../../../antabfs_tassili.sh $$l; done
+	. ${VENV}/bin/activate && cd ${LOGDIR} && for l in `ls *.log`; do  ../../../antabfs_tassili.sh $$l; done
 
 archive_rxg:
 	-rm -r ${LOGDIR}/rxg_files
@@ -57,5 +68,5 @@ archive_rxg:
 export_antabs:
 	cd ${SESSION} && ../../export_antabs.sh `basename ${SCHED}`
 
-export_trainset:
-	./export_trainset.sh
+share_wisdom:
+	./share_wisdom.sh

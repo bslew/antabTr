@@ -89,13 +89,13 @@ antabTr.py ea065btr.log
 
 antabTr.py program should be used in the same way as the original antabfs.py program. 
 This version however stores information about how to reduce your data. If you cancel execution
-before you save your final .antab file, and the restart processing the same log file
+before you save your final .antab file and then restart processing the same log file,
 the program will continue from the point your left off using the wisdom data stored in the local
 directory.
 
 It will be useful if you decide to share the wisdom gathered by this program after your antab files
-are prepared and ready to export to VLBeer. After all this is one of the reasons for writing
-this modification to the original program. Execute:
+are prepared and ready to export to VLBeer. After all, this is one of the reasons for writing
+this modification to the original program. To share the wisdom execute:
 
 ```
 share_wisdom.py
@@ -106,8 +106,10 @@ The wisdom files will be sent to remote server in order to improve machine learn
 that will eventually remove the need for manual preparation of antab files.
 
 The server will ask you for password, which is the same as the one used for uploading antab files
-to VLBeer. Alternatively, if you do not want to enter password every time you run this script
+to VLBeer. Alternatively, if you do not want to enter password every time you run this script,
 please send your public ssh-key to the author.
+
+In time, the wisdom will be made publicly available.
 
 
 # AUTHOR

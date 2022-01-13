@@ -71,14 +71,15 @@ The config file currently defines the location of the .rxg files required to gen
 
 # Use
 
-Use antabTr.py from virtual environment, i.e activate the environment:
+Use antabTr.py from virtual environment, i.e activate the environment unless you already have done so:
 
 ```
 cd antabTr
 . venv/bin/activate
 ```
 
-go to your logs directory and use the modified antabTr.py program instead of antabfs.py:
+"(venv)" prompt will appear to indicate you are in the virtual environment.
+Go to your logs directory and use the modified antabTr.py program instead of antabfs.py:
 
 ```
 antabTr.py ea065btr.log

@@ -28,7 +28,7 @@ Download the package from git repository
 
 ## Installation steps
 
-Change directory to newly donwloaded antabTr repository, create and activate virtual environment,
+Change directory to newly downloaded antabTr repository, create and activate virtual environment,
 update it and install required packages.
 
 ```
@@ -47,7 +47,7 @@ The configuration file is sought at:
 - ./antabfs.ini
 - etc/antabfs.ini
 - ~/.antabfs.ini
-- ~/.config/antabfs/antabfs.ini (prefered)
+- ~/.config/antabfs/antabfs.ini (preferred)
 - /etc/antabfs.ini
 
 Perform eg:
@@ -71,30 +71,42 @@ The config file currently defines the location of the .rxg files required to gen
 
 # Use
 
-Use antabTr.py from vitrual environment, i.e activate the environment:
+Use antabTr.py from virtual environment, i.e activate the environment:
 
 ```
 cd antabTr
 . venv/bin/activate
 ```
 
-go to your logs directory and the modified antabTr.py instead of antabfs.py:
+go to your logs directory and use the modified antabTr.py program instead of antabfs.py:
 
 ```
 antabTr.py ea065btr.log
 ```
 
+# Wisdom
 
-Use antabTr.py in the same way as the original antabfs.py program. 
-If you want to share the wisdom gathered by this program after your antab files
-are ready to export to VLBeer you can execute 
+antabTr.py program should be used in the same way as the original antabfs.py program. 
+This version however stores information about how to reduce your data. If you cancel execution
+before you save your final .antab file, and the restart processing the same log file
+the program will continue from the point your left off using the wisdom data stored in the local
+directory.
+
+It will be useful if you decide to share the wisdom gathered by this program after your antab files
+are prepared and ready to export to VLBeer. After all this is one of the reasons for writing
+this modification to the original program. Execute:
 
 ```
 share_wisdom.py
 ```
 
 script in the directory where you started antabTr.py program.
-The wisdom files will be stored by default in ~/.config/antabTr/wisdom subdirectory.
+The wisdom files will be sent to remote server in order to improve machine learning process
+that will eventually remove the need for manual preparation of antab files.
+
+The server will ask you for password, which is the same as the one used for uploading antab files
+to VLBeer. Alternatively, if you do not want to enter password every time you run this script
+please send your public ssh-key to the author.
 
 
 # AUTHOR

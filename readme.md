@@ -6,7 +6,7 @@ to python3 and implements gathering users' inputs to facilitate machine learning
 approach to generating antab files automatically. It also unifies tabs/spaces convention, 
 introduces experimental processing pipeline and provides support for configuration files.
 
-This program is developed at Toruń VLBI station.
+This version of the program is developed at Toruń VLBI station.
 
 The name of the program "antabTr" is a variation of the original name and indicates
 that the program collects and stores users input as training data useful

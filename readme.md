@@ -3,13 +3,13 @@
 This package ports the antabfs program 
 (see [VLBI-utilities](https://github.com/evn-vlbi/VLBI-utilities) repository) 
 to python3 and implements gathering users' inputs to facilitate machine learning 
-approach to generating antab files automatically. It also introduces several minor
-configuration and pre-processing modifications and support for config files.
+approach to generating antab files automatically. It also unifies tabs/spaces convention 
+and introduces experimental processing pipeline and provides support for configuration files.
 
 This program is developed at Toruń VLBI station.
 
-The name of the program "antabTr" is a variation of the original name that indicates
-that the program collects and stores users input and stores it as training data useful
+The name of the program "antabTr" is a variation of the original name and indicates
+that the program collects and stores users input as training data useful
 in machine learning.
 
 The user has a choice to decide when or if the collected data should be shared and 
@@ -123,7 +123,7 @@ please send your public ssh-key to the author.
 In time, the wisdom will be made publicly available via [antab-wisdom](https://github.com/bslew/antab-wisdom)
 repository.
 
-### What is shared exactly?
+### What is shared?
 
 Only wisdom files are being shared. Wisdom files are pickled dictionaries containing the name of log file,
 the input Tsys data, cleaned Tsys data and indexes of points that were removed by the user for each bbc.

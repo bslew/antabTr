@@ -6,7 +6,8 @@ to python3 and implements gathering users' inputs to facilitate machine learning
 approach to generating antab files automatically. It also unifies tabs/spaces convention, 
 introduces experimental processing pipeline and provides support for configuration files.
 
-This version of the program is developed at Toruń VLBI station.
+This version of the program is extended at Toruń VLBI station, but the core functionality
+related to processing logs and generating antabs is largely unchanged.
 
 The name of the program "antabTr" is a variation of the original name and indicates
 that the program collects and stores users input as training data useful
@@ -87,16 +88,23 @@ antabTr.py ea065btr.log
 
 # Wisdom
 
-antabTr.py program should be used in the same way as the original antabfs.py program. 
-Any pre-processing steps that were possible performed before using antabfs.py should also be
-performed when using antabTr.py. The Makefile scripts makes some of that easier, but using 
+antabTr.py program should be used in the same way as the original antabfs.py program but
+this version will automatically store information about how the user reduces the data in wisdom files.
+Wisdom files are meant to simplify I/O operations in supervised ML approach to automatically generate
+antabs.
+Any pre-processing steps that are possibly performed prior to using antabfs.py should also be
+performed when using antabTr.py. The Makefile scripts makes some of that steps easier, but using 
 the Makefile pipeline is currently in experimental stage.
 
 ## Storing wisdom files
-antabTr.py automatically stores information about how the user reduces the data. If you cancel execution
+If you cancel execution of the antabTr.py program
 before saving your final .antab file and then restart processing the same log file,
 the program will continue from the point your left off using the wisdom data stored in the local
-directory. 
+directory. The wisdom files are stored by default in the 'wisdom' sub-directory.
+The wisdom files contain Tsys data from both the log file and from the generated antab file.
+This information can be used in supervised machine learning.
+To facilitate ML this information can also be extracted for past EVN sessions from analysis 
+of both .log and .antab files.
 
 ## Correcting/re-generating antab files
 
@@ -133,10 +141,13 @@ The naming of the wisdom files follows convention:
 
 where:
 - yyyy-mm are year and month at saving time
-- logfile_prefix is the log file name without extension (VLBI experiment)
+- logfile_prefix is the log file name without extension (VLBI experiment with station code)
 - user_name is the value of the $USER environment variable
 - bbc - an integer
 - awpkl - wisdom files extension
+
+Hence, sharing wisdom is equivalent with sharing fraction of the information stored in
+.antab files and .log files that are sent to VLBeer.
 
 ## Multiple uploads
 If you shared the wisdom once and then decided to correct and regenerate the antab files you can

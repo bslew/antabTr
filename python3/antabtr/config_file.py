@@ -54,7 +54,7 @@ class antabParser(configparser.ConfigParser):
 
 
 
-def readConfigFile(inifile='antabfs.ini'):
+def readConfigFile(inifile='antabfs.ini', verbosity=0):
 #     config = configparser.ConfigParser()
     homeLoc=os.environ['HOME']+os.sep+'.'
     homeLoc2=os.environ['HOME']+os.sep+'.config/antabfs/'
@@ -65,11 +65,13 @@ def readConfigFile(inifile='antabfs.ini'):
     for loc in searchLocations:
         configFile=loc+inifile
         if os.path.isfile(configFile):
-            print('Found configuration file: {}'.format(configFile))
+            if verbosity>1:
+                print('Found configuration file: {}'.format(configFile))
             config.read(configFile)
             return config
         else:
-            print('Cound not find config file: {}'.format(loc))            
+            if verbosity>1:
+                print('Cound not find config file: {}'.format(loc))            
 
     raise Exception("Config file is required but not found. Please consult the docs.")
 

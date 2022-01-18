@@ -54,7 +54,7 @@ USAGE
         parser.add_argument("-v", "--verbose", dest="verbose", action="count", help="set verbosity level [default: %(default)s]", default=0)
         parser.add_argument("-f",'--filter',dest='filter',
                             nargs="*", metavar="VALUE",
-                            help='''filter to match files by extension. E.g. -f log LOG
+                            help='''filter to match files by file ending. E.g. -f log to select all log files, or -f tr.log to select only logs from Toruń station
                             [default: %(default)s]''', 
                             default=['log'])
         parser.add_argument('--logdir', type=str,
@@ -91,7 +91,7 @@ def logantabFiles(args):
     '''
     log and antab files pair generator
     '''
-    rx = re.compile(r'\.('+'|'.join(args.filter)+')')
+    rx = re.compile(r'('+'|'.join(args.filter)+')')
     src=args.logdir
     for path, dnames, fnames in os.walk(src,followlinks=True):
         F=[os.path.join(path, x) for x in fnames if rx.search(x)]

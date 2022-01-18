@@ -1271,6 +1271,7 @@ def get_tcal(lofq,pol,freq,station,cfg=None, rxgfiles=None, verbosity=0, **kwarg
 
     if rxgfiles:
         rxglist = [caldir+i for i in rxgfiles]
+        # rxglist = rxgfiles
     else:
         rxglist=[]
         lall=os.listdir(caldir)

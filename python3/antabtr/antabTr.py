@@ -928,10 +928,10 @@ def main(argv=None):
         tptsys=np.matrix.transpose(np.array(tsysline_aux))
         tptsys=common.prefilter(tptsys,block_aux,maxlim)    #filter negative values
 
-        print('tptsys')
-        print(np.array(tptsys))
-        print(np.array(tptsys).shape)
-        np.savetxt(logFileName+'.tptsys.dump.txt',np.array(tptsys.T))
+        # print('tptsys')
+        # print(np.array(tptsys))
+        # print(np.array(tptsys).shape)
+        # np.savetxt(logFileName+'.tptsys.dump.txt',np.array(tptsys.T))
 
         #loop analizing all bbcs
         print('Draw a rectangle over the points that you want to delete. Then, close the window.')
@@ -945,7 +945,7 @@ def main(argv=None):
             #    continue
             if not debug:
                 if blw.have_wisdom():
-                    alltsys_aux.append(blw.load()['y'])
+                    alltsys_aux.append(blw.load().get_targets())
                     print('Using wisdom from file: {}'.format(blw.get_wisdom_fname()))
                 else:
                     results=Selection(x,fully,block_aux,bbclist[i])
@@ -957,19 +957,22 @@ def main(argv=None):
                             block_aux.pop(ind)
                     removed_idx.append(delIndX)
                     alltsys_aux.append(results.y); 
-#                 print 'results: ',alltsys_aux
-#                 print(len(results.y))
-#                 print('removed_idx: ',removed_idx)
-#                 print(len(removed_idx))
-#                 print('input: ',results.BLwisdom_x0,results.BLwisdom_y0)
-#                 print('output: ',results.BLwisdom_x,results.BLwisdom_y)
-#                 print('removed idx: ',results.BLwisdom_removed_idx)
-                    blw.store({'x' : results.wisdom['x'], 'y': results.wisdom['y'],
-                              'x0' : results.wisdom['x0'], 'y0' : results.wisdom['y'],
-                              'ridx' : results.wisdom['ridx'],
-                              'title' : bbclist[i],
-                              'log' : logFileName,
+
+                    blw.store({
+                        'X' : results.wisdom['y'],
+                        'Y': results.wisdom['y'],
+                        'title' : bbclist[i],
+                        'log' : logFileName,
                               })
+                    # blw.store({
+                    #     'x' : results.wisdom['x'], 
+                    #     'y': results.wisdom['y'],
+                    #     'x0' : results.wisdom['x0'], 
+                    #     'y0' : results.wisdom['y'],
+                    #     'ridx' : results.wisdom['ridx'],
+                    #     'title' : bbclist[i],
+                    #     'log' : logFileName,
+                    #           })
                     blw.save()
                     # blw.savetxt(logFileName+'.wistxt_%02i' % i)
                     print('Saved wisdom to: {}'.format(blw.get_wisdom_fname()))

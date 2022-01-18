@@ -9,8 +9,8 @@ import matplotlib.pyplot as plt
 def plot_wisdom(args,wd):
     
     
-    plt.plot(wd['y0'], '-o', color='k', label='input')
-    plt.plot(wd['y'], '-o', color='r', label='target')
+    plt.plot(wd.get_inputs(), '-o', color='k', label='input')
+    plt.plot(wd.get_targets(), '-o', color='r', label='target')
     plt.legend()
     plt.show()
     

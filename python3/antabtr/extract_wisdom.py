@@ -1,36 +1,36 @@
 '''
-Created on Dec 9, 2021
+Created on Jan 18, 2022
+
+This program runs antabTr.py in parallel for all .log files in the current directory
 
 @author: blew
 '''
+
+from multiprocessing import Pool,Process
+import subprocess
 import os,sys
+import re
+from antabtr import common
+
+from argparse import ArgumentParser
+from argparse import RawDescriptionHelpFormatter
 
 __version__ = 0.1
 __date__ = '2022-01-10'
 __updated__ = '2021-01-10'
 
-from argparse import ArgumentParser
-from argparse import RawDescriptionHelpFormatter
-
 def get_parser():
     
-    program_name = os.path.basename(sys.argv[0])
-    program_version = "v%s" % __version__
-    program_build_date = str(__updated__)
-    program_version_message = '%%(prog)s %s (%s)' % (program_version, program_build_date)
-    # try:
-    #     program_shortdesc = __import__('__main__').__doc__.split("\n")[1] if len(__import__('__main__').__doc__.split("\n"))>=2 else ''
-    # except:
-    program_shortdesc="Script to generate ANTAB files for its use with AIPS."
+    program_shortdesc="Script to extract wisdom in parallel"
     program_epilog ='''
     
-Script to generate ANTAB files for its use with AIPS.
+The program runs over log and antabfs files and extracts wisdom in parallel
 
 
     
 Examples:
 
-antabTr.py ea065btr.log
+extract_wisdom.py -n 4 --logdir directory_with_logs_and_antab_files
 
 '''
     program_license = '''%s
@@ -46,35 +46,41 @@ antabTr.py ea065btr.log
 
 USAGE
 ''' % (program_shortdesc, str(__date__))
-
+    
     try:
         # Setup argument parser
+        # parser = ArgumentParser()
         parser = ArgumentParser(description=program_license, epilog=program_epilog, formatter_class=RawDescriptionHelpFormatter)
         parser.add_argument("-v", "--verbose", dest="verbose", action="count", help="set verbosity level [default: %(default)s]", default=0)
-        parser.add_argument('-V', '--version', action='version', version=program_version_message)
-        # parser.add_argument('--train_dir', type=str, default='../../data/train/',help='train dir')
-        parser.add_argument(dest="paths", help="logfile.log [default: %(default)s]", metavar="path", nargs='*')
-        parser.add_argument('-f','--rxgfiles', type=str, default='',help='''
-            rxgfile_list, a list of RXG files comma separated. 
-            
-            All RXG files are supposed to be under the location specified in the antabfs.ini config file. 
-            If the -f option is not given, the script
-            will search there for a valid RXG file. Valid files are those which define a frequency range that contains 
-            the observed setup in the log file AND match the station code in the log file name. To do so it must be
-            named with the station code as Sc, e.g.:
-            calYsQ.rxg            
-            ''')
-        parser.add_argument('--antabfs', type=str,
-                            help='extract wisdom option. Path to antabfs file. [default: %(default)s]', 
+        parser.add_argument("-f",'--filter',dest='filter',
+                            nargs="*", metavar="VALUE",
+                            help='''filter to match files by extension. E.g. -f log LOG
+                            [default: %(default)s]''', 
+                            default=['log'])
+        # parser.add_argument('-V', '--version', action='version', version=program_version_message)
+        # # parser.add_argument('--train_dir', type=str, default='../../data/train/',help='train dir')
+        # parser.add_argument(dest="paths", help="logfile.log [default: %(default)s]", metavar="path", nargs='*')
+        # parser.add_argument('-f','--rxgfiles', type=str, default='',help='''
+        #     rxgfile_list, a list of RXG files comma separated. 
+        #
+        #     All RXG files are supposed to be under the location specified in the antabfs.ini config file. 
+        #     If the -f option is not given, the script
+        #     will search there for a valid RXG file. Valid files are those which define a frequency range that contains 
+        #     the observed setup in the log file AND match the station code in the log file name. To do so it must be
+        #     named with the station code as Sc, e.g.:
+        #     calYsQ.rxg            
+        #     ''')
+        parser.add_argument('--logdir', type=str,
+                            help='path the log and antabfs directory. [default: %(default)s]', 
                             default='')
-        parser.add_argument('--plot_wisdom', type=str,
-                            help='Plot widom file. [default: %(default)s]', 
-                            default='')
+        # parser.add_argument('--plot_wisdom', type=str,
+        #                     help='Plot widom file. [default: %(default)s]', 
+        #                     default='')
         # parser.add_argument('--split_seed', type=int,
         #                     help='random seed for torch.Generator.manual_seed() [default: %(default)s]',default=1)
-        # parser.add_argument('--lr', type=float, 
-        #                     help='optimizer learning rate[default: %(default)s]', 
-        #                     default=0.001)
+        parser.add_argument('-n','--nthread', type=int, 
+                            help=' number of threads in parallel [default: %(default)s]', 
+                            default=1)
         # parser.add_argument('--momentum', type=float, 
         #                     help='optimizer momentum [default: %(default)s]', 
         #                     default=0.9)
@@ -156,3 +162,45 @@ USAGE
 #         return 2
         
     return args
+
+def logantabBatch(bs,args):
+    b=[]
+    for i,d in enumerate(logantabFiles(args)):
+        if i<bs:
+            b.append(d)
+        yield b
+        
+def logantabFiles(args):
+    '''
+    log and antab files pair generator
+    '''
+    rx = re.compile(r'\.('+'|'.join(args.filter)+')')
+    src=args.logdir
+    for path, dnames, fnames in os.walk(src,followlinks=True):
+        F=[os.path.join(path, x) for x in fnames if rx.search(x)]
+        for log in F:
+            d,f,e=common.get_basename_ext(log)
+            yield log,os.path.join(d,f+".antabfs")
+    
+def process_antab(logantab):
+    log,antab=logantab
+    cmd='antabTr.py --extract_wisdom --antabfs {} {}'.format(antab,log)
+    
+    print("executing: ",cmd)
+    # p=Process(target=)
+    subprocess.run(cmd.split())
+
+def main():
+    args=get_parser()
+    with Pool(args.nthread) as p:
+        it=logantabFiles(args)
+        # for b in logantabFiles(args):
+        #     log, antab=b
+        p.map(process_antab,it)
+            # print(b)
+# antabTr.py --extract_wisdom --antabfs clean/vlbeer$antdst clean/vlbeer$dst
+
+
+    
+if __name__ == '__main__':
+    main()

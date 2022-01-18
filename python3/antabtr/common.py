@@ -72,7 +72,7 @@ class logFile:
     '''
 
     #-----------------------------------------------------------------------------------------------------
-    def __init__(self, fileName, cfg=None, rxgfiles=None, verbosity=0):
+    def __init__(self, fileName, cfg=None, rxgfiles=None, verbosity=0, **kwagrs):
         '''Constructor.
         It opens the LOG file, reads its content and closes it. The content is stored in a private variable: self.fileContent
         Other variables are also stored like:
@@ -150,10 +150,14 @@ class logFile:
                        'wastro': ['1u','2u','3u','4u','5u','6u','7u','8u','1l','2l','3l','4l','5l','6l','7l','8l','9u','au','bu','cu','du','eu','fu','gu','9l','al','bl','cl','dl','el','fl','gl']}
 
         self.__epoch = datetime.datetime.utcfromtimestamp(0)
-
-        self.__readLog()
+        
+        if verbosity>2:
+            print("Reading log data")
+        self.__readLog(**kwagrs)
+        if verbosity>2:
+            print("Reading log data done")
     #------------------------------------------------------------------------------------
-    def __readLog(self):
+    def __readLog(self, **kwargs):
         '''
         Reads the LOG file to find variables. Reading can be divided in two parts: header reading and data reading.
 
@@ -168,11 +172,20 @@ class logFile:
 
         As a result, the class variable self.logData will store the DBBC and LO configuration detected, every scan number
         with the source observed and all tsys calculated with their time tag.           
+        
+        keywords
+        --------
+            enforceTsysTsys - enforces this value of Tsys to be used
+            
         '''
 
         time = []    # List of Tsys time tag
         block = []    # List of Tsys scan tag
         tsysline = []    # List of calculated Tsys
+        
+        enforceTsys=False
+        if 'enforceTsys' in kwargs:
+            enforceTsys=kwargs['enforceTsys']
 
         for nLine in range(0, len(self.fileContent)):
 
@@ -198,16 +211,16 @@ class logFile:
 
             #----------------Checking Data Validation-----------------
             # Check if the LOG line is "data_valid=on/off". 
-            if self.__checkDataValid(line):
+            if self.__checkDataValid(line, **kwargs):
                 continue
 
             #----------------Reading Temp Variables-------------------
             # If data is valid, check if the LOG line has temperature information.
             if self.__dataValid:
                 if nLine+1 >= len(self.fileContent):
-                    self.__readTempVar(line, "")
+                    self.__readTempVar(line, "", **kwargs)
                 else:
-                    self.__readTempVar(line, self.fileContent[nLine+1].strip())
+                    self.__readTempVar(line, self.fileContent[nLine+1].strip(), **kwargs)
 
             #--------Integration Complete. Tsys calculation-----------
             # If a "data_valid=off" is read or the integration time has been exceeded (20 seconds),
@@ -220,7 +233,12 @@ class logFile:
 
                 dt = self.__getDatetime(line)
 
-                tsysline_aux = self.__getTsys(self.__bbccodelist[self.__currentSetup], dt)
+                # if 'enforceTsys' in kwargs:
+                #     tsysline_aux=float(kwargs['enforceTsys'])
+                # else:
+                tsysline_aux = self.__getTsys(self.__bbccodelist[self.__currentSetup], dt, **kwargs)
+                    
+                
 
                 """    
                 if not tsysline_aux:    # If is empty means that some temperature variable was empty during Tsys calculation.
@@ -261,6 +279,7 @@ class logFile:
                     block.append(self.__scanNum)
 
                     # Tsys calculated
+                        
                     tsysline.append(tsysline_aux)
                 """
 
@@ -391,7 +410,7 @@ class logFile:
 
 
     #------------------------------------------------------------------------------------
-    def __setParams(self):
+    def __setParams(self, **kwargs):
         '''
         When header reading finish, the information read should be sorted. 
         This method fill variables about DBBC channel identification, frequency and bandwidth 
@@ -482,7 +501,9 @@ class logFile:
                     bbcFreq = self.__bbcfq[self.__currentSetup][i]
 
                 fchan=lofq+bbcFreq-bw_aux/2.
-                tcal=get_tcal(lofq,pol,fchan, self.station().lower(),cfg=self.cfg,rxgfiles=self.rxgfiles, verbosity=self.verbosity)
+                tcal=get_tcal(lofq,pol,fchan, self.station().lower(),cfg=self.cfg,rxgfiles=self.rxgfiles, verbosity=self.verbosity, **kwargs)
+
+
 
                 if not self.__caltempRead[self.__currentSetup]:
                     self.__tempDict[-1][i] = [tcal]                
@@ -494,7 +515,7 @@ class logFile:
                 self.__tempDict[-1][i] = self.__setupTcal[self.__currentSetup][i]
     
     #------------------------------------------------------------------------------------
-    def __readTempVar(self, line, nextLine):
+    def __readTempVar(self, line, nextLine, **kwargs):
         """
         Read 'tpicd' temperature variable from the LOG file.
         At the beginning, this method check two strings to detect if DBBC uses 
@@ -516,7 +537,7 @@ class logFile:
         tempInd = self.__idLine(line,tempReference)
 
         if not self.__headerComp and not self.__currentSetup in self.calModeName:        # If the calibration mode has been identified:
-            self.__setParams()                                #    Call self.__setParams() method to prepare the variables used to store temperature information
+            self.__setParams(**kwargs)                                #    Call self.__setParams() method to prepare the variables used to store temperature information
             self.__headerComp = True                            #     Set self.__headerComp to True, indicating that header reading has finished
         
         dt = self.__getDatetime(line)
@@ -535,7 +556,7 @@ class logFile:
             self.__getTempLine(line, tempInd)
 
     #------------------------------------------------------------------------------------
-    def __checkDataValid(self, line):
+    def __checkDataValid(self, line, **kwargs):
         """
         Read a LOG file line to check if the following lines have valid data or not.
         When a 'data_valid=off' is read, it indicates that integration has finished 
@@ -553,7 +574,7 @@ class logFile:
                 self.__dataValid = True
                 self.__dtStartInt = self.__getDatetime(line)
                 if self.__newSetup:
-                    self.__setParams()
+                    self.__setParams(**kwargs)
                 self.__newSetup = False
 
             return True
@@ -831,7 +852,7 @@ class logFile:
         return False
             
     #------------------------------------------------------------------------------------
-    def __getTsys(self, bbccodelist, dt):
+    def __getTsys(self, bbccodelist, dt,**kwargs):
         '''
         Calculate Tsys for each individual DBBC channel used in the LOG file.
         
@@ -841,7 +862,7 @@ class logFile:
 
         if not self.__headerComp and not (self.__currentSetup in self.calModeName):        # If header reading was not finished yet means that no tpicd line was found in the LOG file.
             self.calModeName[self.__currentSetup] = "SINGLE"                # In that case, set SINGLE as the calibration mode used by the DBBC.
-            self.__setParams()    
+            self.__setParams(**kwargs)    
             self.__headerComp = True
 
         temp=[]
@@ -1240,7 +1261,7 @@ class logFile:
                 del rxgF
         return fileRXG
 
-def get_tcal(lofq,pol,freq,station,cfg=None, rxgfiles=None, verbosity=0):
+def get_tcal(lofq,pol,freq,station,cfg=None, rxgfiles=None, verbosity=0, **kwargs):
     caldir=cfg['CALIB']['rxgDir']
 
     # caldir='/home/blew/programy/antab/data/rxg_files/'
@@ -1300,6 +1321,15 @@ def get_tcal(lofq,pol,freq,station,cfg=None, rxgfiles=None, verbosity=0):
             print("tcal = %g" % tcal)
         #sys.exit('A suitable rxg_file was not found')
             print('A suitable rxg_file was not found. Maybe tcal is inside LOG file ("caltemp" tag)')
+
+    if verbosity>2:
+        print('tcal',tcal)
+    if 'enforceTcalIfNoCal' in kwargs.keys():
+        if tcal==0:
+            tcal=kwargs['enforceTcalIfNoCal']
+            if verbosity>2:
+                print('enforceTcalIfNoCal: ',tcal)
+    
     return tcal
 
 
@@ -1642,5 +1672,9 @@ class AntabFile():
         return self
     
     def Tsys(self):
+        '''
+        returns 2d array NxC
+        where N is data length, C - number of channels (bbcs)
+        '''
         return self.tsys
     

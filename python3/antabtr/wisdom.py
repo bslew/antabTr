@@ -8,12 +8,13 @@ import pickle
 import numpy as np
 from datetime import datetime
 from antabtr import common
+import matplotlib.pyplot as plt
 
 class UserWisdom():
     def __init__(self,cfg,logFileName='',idx=0):
         '''
         '''
-        self.wis=None
+        self.wis={}
         self.cfg=cfg
         self.odir=cfg['wisdom']['wisDir']
         self.idx=idx
@@ -47,6 +48,17 @@ class UserWisdom():
         self.load()
         return self.wis['y']
 
+    def get_inputs(self):
+        if 'X' in self.wis:
+            return self.wis['X']
+        return self.wis['y0']
+        
+    
+    def get_targets(self):
+        if 'Y' in self.wis:
+            return self.wis['Y']
+        return self.wis['y']
+
     def load(self,fname=None):
         if fname==None:
             fname=self.get_wisdom_fname()
@@ -64,7 +76,7 @@ class UserWisdom():
                 raise
             
 
-        return self.wis
+        return self
 
     def store(self,wis):
         '''
@@ -88,6 +100,8 @@ class UserWisdom():
             fname=self.get_wisdom_fname()
         # else:
         #     fname=os.path.join(self.odir,fname)
+        
+        # print("saving to ",fname)
         self.checkodir(fname)
         fileObj = open(fname, 'wb')
         pickle.dump(self.wis,fileObj)
@@ -104,16 +118,31 @@ class UserWisdom():
   
     
 class WisdomExtractor():
+    '''
+    Class to extract wisdom data from .log and .antabfs files even without 
+    proper tcal .rxg files. If no calibration is given (case for 
+    most of the stations because rxg files are not uploaded to vlbeer)
+    tcal is assumed 1.0. In such cases calibration is inferred from antab file
+    based on most frequently occuring value. This assumes that at least some 
+    parts of the data are not noisy. If they are, the extractor will ignore such
+    log/antab combination.
+    '''
+    
     def __init__(self,args,cfg):
         self.args=args
         self.cfg=cfg
         maxlim=cfg.getfloat('Tsys','maxlim')
 
         self.logFileName=args.paths[0]
-        self.logF = common.logFile(self.logFileName,cfg=cfg)
+        self.logF = common.logFile(self.logFileName,cfg=cfg, 
+                                   verbosity=args.verbose,
+                                   enforceTcalIfNoCal=1.)
         logData = self.logF.getLogData()
         tsysline = logData[3] 
         block = logData[4] 
+        
+        # print(tsysline)
+        # print(block)
 
         tsysline_aux=tsysline
         block_aux=block
@@ -124,30 +153,109 @@ class WisdomExtractor():
         
         self.Y=common.AntabFile().load(args.antabfs).Tsys().T
         
-        self.wisdom_min_length=100
+        self.wisdom_min_length=cfg.getint('wisdom','min_length')
+        self.wisdom_lmargin=cfg.getfloat('wisdom','lmargin')/100
+        self.wisdom_rmargin=cfg.getfloat('wisdom','rmargin')/100
+        self.wisdom_maxTsys=cfg.getfloat('wisdom','maxTsys')
+        self.most_frequent_calib_factor_max=10.
+        
+    def get_data(self,x,y):
+        '''
+        returns x,y,status
+        '''
+
+        if len(x)<self.wisdom_min_length:
+            print("Ignoring due to {}<{} length of tptsys".format(len(x),self.wisdom_min_length))
+            return x,y,False
+
+        
+        # make equal length
+        imax=np.min([len(x),len(y)])
+        x=x[:imax]
+        y=y[:imax]
+
+
+        # apply margin
+        ist=int(len(x)*self.wisdom_lmargin)
+        ien=int(len(x)-len(x)*self.wisdom_rmargin)
+        x=x[ist:ien]
+        y=y[ist:ien]
+        # print(ist,ien)
+
+
+        # normalize due to missing calibration information
+        f=list(np.array(y/x*1000,dtype=int))
+        s=set(f)
+        tsys_norm_stats=np.array([ np.array([float(val)/1000,f.count(val)]) for val in s])
+        tsys_norm_stats=tsys_norm_stats[tsys_norm_stats[:,1].argsort()]
+        tsys_norm_stats[:,1]/=len(f)
+        if self.args.verbose>4:
+            print(tsys_norm_stats)
+        most_frequent_calib_factor=tsys_norm_stats[-1][0]
+
+        # plt.plot(x)
+        # plt.plot(y)
+        # plt.show()
+        x=x*most_frequent_calib_factor
+
+        if most_frequent_calib_factor>np.max([self.most_frequent_calib_factor_max,1./self.most_frequent_calib_factor_max]):
+            print('ignoring due to too too suspecious calibration factor value ({})'.format(most_frequent_calib_factor))
+            return x,y,False
+
+        # check log file consistency (was the correct antab/log file transferred?)
+        # sigma_diff=(y-x).std()
+        # print('st.dev of difference',sigma_diff)
+        # if sigma_diff>1.:
+            # print('ignoring due to too large st.dev of difference (possible log-antab mismatch, or extreemely noisy')
+            # return x,y,False
+
+        '''
+        screen by empirical calibration factor occurance threshold.
+        I.e. at least 10% of data should be unaffected by noise and have calibration
+        factor value within 0.1% of the original value from the log file
+        '''
+        freq_thres=0.1
+        if tsys_norm_stats[-1][1]<freq_thres:
+            print('ignoring due to too possible log-antab mismatch, or extremely noisy')
+            return x,y,False
+            
+        if np.median(y)>self.wisdom_maxTsys:
+            return x,y,False
+
+        return x,y,True
         
     def extract_wisdom(self):
         '''
         '''
+        
         if len(self.X.T)==0:
             print("Ignoring due to {} length of tptsys".format(len(self.X)))
+            
+        
+        
         for i,x in enumerate(self.X):
-            wis=UserWisdom(self.cfg,self.logFileName,i)
-
-            imax=np.min([len(x),len(self.Y[i])])
-            if imax>self.wisdom_min_length:
-                idx=np.arange(imax)
+            if self.args.verbose>2:
+                print('testing bbc {}'.format(i))
+            x,y,status=self.get_data(x, self.Y[i])
+            
+            if status:
+            
+                wis=UserWisdom(self.cfg,self.logFileName,i)
+    
+                idx=np.arange(len(x))
                 wis.store({
-                        'x' : idx,
-                        'y': self.Y[i][:imax],
-                        'x0' : idx, 
-                        'y0' : x[:imax],
-                        'ridx' : [],
+                        'X' : x,
+                        'Y' : y,
+                        'bbc' : i,
+                        # 'x' : idx,
+                        # 'y': self.Y[i][:imax],
+                        # 'x0' : idx, 
+                        # 'y0' : x[:imax],
+                        # 'ridx' : [],
                         'title' : i,
                         'log' : self.logFileName,
                           })
                 wis.save()
             else:
-                if len(x)<self.wisdom_min_length:
-                    print("Ignoring due to {}<{} length of tptsys".format(len(x),self.wisdom_min_length))
-                    break
+                if self.args.verbose>2:
+                    print('channel ignored')

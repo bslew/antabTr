@@ -31,6 +31,7 @@ setup(name='antabTr',
       scripts=['antabtr/antabTr.py',
                'antabtr/fix-tsys.py',
                'antabtr/share_wisdom.py',
+               'antabtr/extract_wisdom.py',
                ],
       classifiers=[
         "Development Status :: 3 - Alpha",

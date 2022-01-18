@@ -157,15 +157,17 @@ class WisdomExtractor():
         self.wisdom_lmargin=cfg.getfloat('wisdom','lmargin')/100
         self.wisdom_rmargin=cfg.getfloat('wisdom','rmargin')/100
         self.wisdom_maxTsys=cfg.getfloat('wisdom','maxTsys')
+        self.input_target_resolution=cfg.getfloat('wisdom','input_target_resolution')
+        self.selection_thres=cfg.getfloat('wisdom','selection_thres')
         self.most_frequent_calib_factor_max=10.
         
-    def get_data(self,x,y):
+    def get_data(self,x,y, channel=0):
         '''
         returns x,y,status
         '''
 
         if len(x)<self.wisdom_min_length:
-            print("Ignoring due to {}<{} length of tptsys".format(len(x),self.wisdom_min_length))
+            print("Ignoring due to {}<{} length of tptsys (channel: {})".format(len(x),self.wisdom_min_length,channel))
             return x,y,False
 
         
@@ -184,9 +186,9 @@ class WisdomExtractor():
 
 
         # normalize due to missing calibration information
-        f=list(np.array(y/x*1000,dtype=int))
+        f=list(np.array(y/x*self.input_target_resolution,dtype=int))
         s=set(f)
-        tsys_norm_stats=np.array([ np.array([float(val)/1000,f.count(val)]) for val in s])
+        tsys_norm_stats=np.array([ np.array([float(val)/self.input_target_resolution,f.count(val)]) for val in s])
         tsys_norm_stats=tsys_norm_stats[tsys_norm_stats[:,1].argsort()]
         tsys_norm_stats[:,1]/=len(f)
         if self.args.verbose>4:
@@ -199,7 +201,7 @@ class WisdomExtractor():
         x=x*most_frequent_calib_factor
 
         if most_frequent_calib_factor>np.max([self.most_frequent_calib_factor_max,1./self.most_frequent_calib_factor_max]):
-            print('ignoring due to too too suspecious calibration factor value ({})'.format(most_frequent_calib_factor))
+            print('ignoring due to too too suspecious calibration factor value ({}, channel: {})'.format(most_frequent_calib_factor,channel))
             return x,y,False
 
         # check log file consistency (was the correct antab/log file transferred?)
@@ -214,9 +216,9 @@ class WisdomExtractor():
         I.e. at least 10% of data should be unaffected by noise and have calibration
         factor value within 0.1% of the original value from the log file
         '''
-        freq_thres=0.1
+        freq_thres=self.selection_thres
         if tsys_norm_stats[-1][1]<freq_thres:
-            print('ignoring due to too possible log-antab mismatch, or extremely noisy')
+            print('ignoring due to too possible log-antab mismatch, or extremely noisy (channel: {}, val: {}, thres: {})'.format(channel, tsys_norm_stats[-1][1],freq_thres))
             return x,y,False
             
         if np.median(y)>self.wisdom_maxTsys:
@@ -236,9 +238,9 @@ class WisdomExtractor():
         for i,x in enumerate(self.X):
             if self.args.verbose>2:
                 print('testing bbc {}'.format(i))
-            x,y,status=self.get_data(x, self.Y[i])
+            x,y,status=self.get_data(x, self.Y[i],channel=i)
             
-            if status:
+            if status or self.args.force_wisdom_save:
             
                 wis=UserWisdom(self.cfg,self.logFileName,i)
     

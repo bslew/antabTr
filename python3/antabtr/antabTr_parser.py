@@ -70,6 +70,9 @@ USAGE
         parser.add_argument('--plot_wisdom', type=str,
                             help='Plot widom file. [default: %(default)s]', 
                             default='')
+        parser.add_argument('--force_wisdom_save', action='store_true',
+                            help='Save wisdom even if something fishy is detected. [default: %(default)s]', 
+                            default=False)
         # parser.add_argument('--split_seed', type=int,
         #                     help='random seed for torch.Generator.manual_seed() [default: %(default)s]',default=1)
         # parser.add_argument('--lr', type=float, 

@@ -1,13 +1,18 @@
 # GENERAL
 
-This package ports the antabfs program 
+This package ports the original antabfs program 
 (see [VLBI-utilities](https://github.com/evn-vlbi/VLBI-utilities) repository) 
-to python3 and implements gathering users' inputs to facilitate machine learning 
+to python3 and implements several modifications including 
+storing users' inputs to enable machine learning 
 approach to generating antab files automatically. It also unifies tabs/spaces convention, 
-introduces experimental processing pipeline and provides support for configuration files.
+improves modularization and re-usability of the code,
+provides support for configuration files, command line parser, reading data from
+vlbeer for building ML training sets and plotting options. It also
+introduces experimental antab files processing pipeline.
 
 This version of the program is extended at Toruń VLBI station, but the core functionality
-related to processing logs and generating antabs is largely unchanged.
+related to processing logs and generating antabs is largely unchanged and compatible with
+antabfs program version '20201123'.
 
 The name of the program "antabTr" is a variation of the original name and indicates
 that the program collects and stores users input as training data useful
@@ -80,21 +85,62 @@ cd antabTr
 ```
 
 "(venv)" prompt will appear to indicate you are in the virtual environment.
+
+## Generating antab files
 Go to your logs directory and use the antabTr.py program instead of antabfs.py:
 
 ```
 antabTr.py ea065btr.log
 ```
 
+## Plotting .awpkl files
+
+In order to plot wisdom from awpkl file use eg:
+
+```
+antabTr.py --plot_wisdom wisdom/example.awpkl
+```
+
+awpkl files are typically located in "wisdom" sub-directory.
+
+
+## Extracting wisdom files from past EVN sessions data
+
+The provided `extract_wisdom.py` script along with `antabTr.py` can be used to automatically extract wisdom from data sent to VLBeer. See
+
+```
+extract_wisdom.py --help
+```
+
+This is done by e.g.
+
+```
+antabTr.py --extract_wisdom --antabfs clean/vlbeer-mar18-n18c1ys.antabfs clean/vlbeer-mar18-n18c1ys.log
+```
+
+The program extracts the Tsys data from the log file even if the calibration is 
+not available and uses it as input noisy data. The target data is taken from the corresponding
+antab file. The calibration of the input is inferred from the most likely target/input ratio,
+although several other check are performed before the extracted wisdom will enter the training
+set. Extracting wisdom will also automatically rejects parts of the data from the beginning
+and end of the session (controlled by parameters in the configuration files) as it is not easy 
+to clean those regions manually with the original (and current) version of the the antabfs
+program.
+
+
 # Wisdom
 
-antabTr.py program should be used in the same way as the original antabfs.py program but
-this version will automatically store information about how the user reduces the data in wisdom files.
-Wisdom files are meant to simplify I/O operations in supervised ML approach to automatically generate
-antabs.
+antabTr.py program should be used in the same way as the original antabfs.py program for 
+generating antab files but
+this version will automatically store the information about how the user reduces the data.
+That information is stored in wisdom files.
+Wisdom files are meant to simplify I/O operations in supervised ML approach to automatically generate antabs.
 Any pre-processing steps that are possibly performed prior to using antabfs.py should also be
 performed when using antabTr.py. The Makefile scripts makes some of that steps easier, but using 
 the Makefile pipeline is currently in experimental stage.
+
+Since typically the Tcal information from RXG files is not sent to VLBeer server it is not 
+directly possible to extract the wisdom from .antab nor from .log files, or from the combination of the two. This is one of the reasons why wisdom is collected.
 
 ## Storing wisdom files
 If you cancel execution of the antabTr.py program
@@ -147,7 +193,7 @@ where:
 - awpkl - wisdom files extension
 
 Hence, sharing wisdom is equivalent with sharing fraction of the information stored in
-.antab files and .log files that are sent to VLBeer.
+.antabfs files, .log files and .rxg files.
 
 ## Multiple uploads
 If you shared the wisdom once and then decided to correct and regenerate the antab files you can

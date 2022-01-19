@@ -127,7 +127,7 @@ antabTr.py program should be used in the same way as the original antabfs.py pro
 generating antab files but
 this version will automatically store the information about how the user cleans the data.
 That information is stored in wisdom files.
-Wisdom files are meant to simplify I/O operations in ML approach to automatically generate antabs.
+Wisdom files are meant to simplify I/O operations in ML approach to automatic generation of antabs.
 Any pre-processing steps on logs that are possibly performed prior to using antabfs.py should also be
 performed when using antabTr.py. The Makefile scripts makes some of that steps easier, but using 
 the Makefile pipeline is currently in experimental stage (type `make help` for more information)

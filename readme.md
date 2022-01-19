@@ -2,15 +2,17 @@
 
 This package ports the original antabfs program 
 (see [VLBI-utilities](https://github.com/evn-vlbi/VLBI-utilities) repository) 
-to python3 and implements several modifications including 
-storing users' inputs to enable machine learning 
-approach to generating antab files automatically. It also unifies tabs/spaces convention, 
+to python3 and implements several other modifications. The main rationale behind this
+package is to enable machine learning 
+approach to generating antab files automatically. 
+The program also unifies tabs/spaces convention of the original program, 
 improves modularization and re-usability of the code,
 provides support for configuration files, command line parser, reading data from
-vlbeer for building ML training sets and plotting options. It also
-introduces experimental antab files processing pipeline.
+vlbeer for building ML training sets from past sessions and provides basic 
+plotting options for the gathered data. It also
+introduces experimental, Makefile based, antab files processing pipeline.
 
-This version of the program is extended at Toruń VLBI station, but the core functionality
+This version of the program is developed at Toruń VLBI station, but the core functionality
 related to processing logs and generating antabs is largely unchanged and compatible with
 antabfs program version '20201123'.
 
@@ -73,7 +75,8 @@ make install
 
 Now edit ~/.config/antabfs/antabfs.ini config file to match your preferences.
 The config file currently defines the location of the .rxg files required to generate .antab files.
-
+This is the only user-side option that needs to be specified, although several other options
+are also available.
 
 # Use
 
@@ -203,6 +206,7 @@ If you shared the wisdom once and then decided to correct and regenerate the ant
 share_wisdom.py again. The files will be uploaded again and their previous version will be overwritten if
 the updated version of the antab files is generated the same month as the previous one which results from
 the naming convention of the wisdom files.
+
 
 # AUTHOR
 Bartosz Lew [<bartosz.lew@umk.pl>](bartosz.lew@umk.pl)

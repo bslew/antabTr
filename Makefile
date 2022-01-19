@@ -17,6 +17,7 @@ install:
 
 	@echo "Installing scripts"
 	install sh/antabTr.sh venv/bin/
+	install sh/export_antabs.sh venv/bin/
 
 	@echo "Installing config file"
 	-mkdir -p $(HOME)/.config/antabfs/
@@ -31,12 +32,17 @@ install:
 
 help:
 	@echo ""
-	@echo "USAGE EXAMPLE"
+	@echo "USAGE"
 	@echo ""
+	@echo ""
+	@echo "Example of typical antab session"
+	@echo ""
+	@echo "place your schedule to a new directory and type:"
 	@echo "make SCHED=sessions/jan22/eEVN-180122.txt dw_rxg"
 	@echo "make SCHED=sessions/jan22/eEVN-180122.txt plot_rxg"
 	@echo "make SCHED=sessions/jan22/eEVN-180122.txt logs"
 	@echo "make SCHED=sessions/jan22/eEVN-180122.txt antab"
+	@echo "make SCHED=sessions/jan22/eEVN-180122.txt export_antabs"
 	@echo ""
 	@echo ""
 
@@ -82,12 +88,12 @@ check_venv:
 antab: 
 	. ${VENV}/bin/activate && cd ${LOGDIR} && for l in `ls *.log`; do antabTr.sh $$l; done
 
-archive_rxg:
-	-rm -r ${LOGDIR}/rxg_files
-	cp -rp data/rxg_files  ${LOGDIR}/rxg_files-`date +%Y-%m-%d`
+#archive_rxg:
+#	-rm -r ${LOGDIR}/rxg_files
+#	cp -rp data/rxg_files  ${LOGDIR}/rxg_files-`date +%Y-%m-%d`
 
 export_antabs:
-	cd ${SESSION} && ../../export_antabs.sh `basename ${SCHED}`
+	. ${VENV}/bin/activate && cd ${SESSION} && export_antabs.sh `basename ${SCHED}`
 
 share_wisdom:
 	./share_wisdom.sh

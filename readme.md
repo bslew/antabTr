@@ -89,6 +89,10 @@ cd antabTr
 
 "(venv)" prompt will appear to indicate you are in the virtual environment.
 
+```
+antabTr.py --help
+```
+
 ## Generating antab files
 Go to your logs directory and use the antabTr.py program instead of antabfs.py:
 

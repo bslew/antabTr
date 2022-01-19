@@ -172,7 +172,7 @@ repository.
 
 ### What is shared?
 
-Only wisdom files are being shared. Wisdom files are pickled dictionaries containing the name of log file,
+Only wisdom files are being shared. Wisdom files are python3 pickled dictionaries containing the name of log file,
 the input Tsys data, cleaned Tsys data and indexes of points that were removed by the user for each bbc.
 The naming of the wisdom files follows convention:
 

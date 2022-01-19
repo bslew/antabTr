@@ -125,15 +125,16 @@ program.
 
 antabTr.py program should be used in the same way as the original antabfs.py program for 
 generating antab files but
-this version will automatically store the information about how the user reduces the data.
+this version will automatically store the information about how the user cleans the data.
 That information is stored in wisdom files.
-Wisdom files are meant to simplify I/O operations in supervised ML approach to automatically generate antabs.
-Any pre-processing steps that are possibly performed prior to using antabfs.py should also be
+Wisdom files are meant to simplify I/O operations in ML approach to automatically generate antabs.
+Any pre-processing steps on logs that are possibly performed prior to using antabfs.py should also be
 performed when using antabTr.py. The Makefile scripts makes some of that steps easier, but using 
-the Makefile pipeline is currently in experimental stage.
+the Makefile pipeline is currently in experimental stage (type `make help` for more information)
 
 Since typically the Tcal information from RXG files is not sent to VLBeer server it is not 
-directly possible to extract the wisdom from .antab nor from .log files, or from the combination of the two. This is one of the reasons why wisdom is collected.
+directly possible to extract the wisdom from .antab nor from .log files, or from the combination of the two. 
+This is one of the reasons why wisdom is collected.
 
 ## Storing wisdom files
 If you cancel execution of the antabTr.py program
@@ -141,8 +142,7 @@ before saving your final .antab file and then restart processing the same log fi
 the program will continue from the point your left off using the wisdom data stored in the local
 directory. The wisdom files are stored by default in the 'wisdom' sub-directory.
 The wisdom files contain Tsys data from both the log file and from the generated antab file.
-This information can be used in supervised machine learning.
-To facilitate ML this information can also be extracted for past EVN sessions from analysis 
+To enlarge training, under certain conditions set such information can also be extracted for past EVN sessions from analyses 
 of both .log and .antab files.
 
 ## Correcting/re-generating antab files

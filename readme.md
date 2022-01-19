@@ -49,25 +49,8 @@ pip install -r requirements.txt
 ```
 
 Make sure the venv is located in antabTr subdirectory.
-Copy the configuration file to one of the default locations.
-The configuration file is sought at:
 
-- ./antabfs.ini
-- etc/antabfs.ini
-- ~/.antabfs.ini
-- ~/.config/antabfs/antabfs.ini (preferred)
-- /etc/antabfs.ini
-
-Perform eg:
-
-```
-cp antabfs.ini ~/.config/antabfs/antabfs.ini
-cd python3 && python setup.py install
-cd ..
-
-```
-
-or execute
+Execute
 
 ```
 make install

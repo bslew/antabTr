@@ -94,6 +94,10 @@ In order to plot wisdom from awpkl file use eg:
 antabTr.py --plot_wisdom wisdom/example.awpkl
 ```
 
+Example wisdom data
+
+![wisdom data](docs/wisdom.png)
+
 awpkl files are typically located in "wisdom" subdirectory.
 
 

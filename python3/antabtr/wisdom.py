@@ -54,6 +54,12 @@ class UserWisdom():
         self.load()
         return self.wis['y']
 
+    def get_title(self):
+        return self.wis['title']
+
+    def get_logfile(self):
+        return self.wis['log']
+
     def get_inputs(self):
         if 'X' in self.wis:
             return self.wis['X']

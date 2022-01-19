@@ -116,7 +116,7 @@ antabTr.py --extract_wisdom --antabfs clean/vlbeer-mar18-n18c1ys.antabfs clean/v
 ```
 
 The program extracts the Tsys data from the log file even if the calibration is 
-not available and stores it as (noisy) inputs in supervised ML. The target data is taken from the corresponding
+not available and stores it as (noisy) inputs. The target data is taken from the corresponding
 antab file. The calibration of the input is inferred from the most likely target/input ratio,
 although several other check are performed before the extracted wisdom enters the training
 set. Extracting wisdom also automatically rejects parts of the data from the beginning

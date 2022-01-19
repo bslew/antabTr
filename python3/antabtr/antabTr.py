@@ -84,7 +84,7 @@ import pickle
 from antabtr import config_file, wisdom, antabTr_parser,common,vis
 
 station = ""
-rxgfiles = ""
+# rxgfiles = ""
 
 version=20201123
 # print('tassili_version={}'.format(version))
@@ -813,8 +813,8 @@ def main(argv=None):
         sys.argv.extend(argv)
 
     args = antabTr_parser.get_parser()
+    rxgfiles=""
     if args.rxgfiles!="":
-        global rxgfiles
         rxgfiles=args.rxgfiles.split(',')
 
 
@@ -841,7 +841,7 @@ def main(argv=None):
         pass
     else:
         logFileName = str(args.paths[0])
-        print(logFileName)
+        # print(logFileName)
         global station
         station = logFileName[-6:-4]
     logFileName =args.paths[0]
@@ -860,7 +860,7 @@ def main(argv=None):
 #    antabFile = os.path.dirname(os.path.abspath(__file__)) + ('/%s.antabfs' % (logFileName.split('/')[-1].split('.')[0]))
     antabFile = os.path.join(os.path.dirname(logFileName),'%s.antabfs' % (logFileName.split('/')[-1].split('.')[0]))
 
-    logF = common.logFile(logFileName,cfg=cfg,rxgfiles=rxgfiles)
+    logF = common.logFile(logFileName,cfg=cfg,rxgfiles=rxgfiles, verbosity=args.verbose)
     #antabH = antabHeader(logFileName)
     antabH = antabHeader(logF,cfg=cfg)  #FJB
 

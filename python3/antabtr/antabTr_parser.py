@@ -64,11 +64,17 @@ USAGE
             named with the station code as Sc, e.g.:
             calYsQ.rxg            
             ''')
+        parser.add_argument('--rxgDir', type=str,
+                            help='Path to rxg files directory. If specified, this option takes precedence over the value stored in the .antabfs.ini config file [default: %(default)s]', 
+                            default='')
         parser.add_argument('--antabfs', type=str,
                             help='extract wisdom option. Path to antabfs file. [default: %(default)s]', 
                             default='')
         parser.add_argument('--plot_wisdom', type=str,
                             help='Plot widom file. [default: %(default)s]', 
+                            default='')
+        parser.add_argument('--print_wisdom', type=str,
+                            help='Print content of widom file. [default: %(default)s]', 
                             default='')
         parser.add_argument('--force_wisdom_save', action='store_true',
                             help='Save wisdom even if something fishy is detected. [default: %(default)s]', 

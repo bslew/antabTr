@@ -25,11 +25,17 @@ class UserWisdom():
         self.user=os.environ['USER']
         self.dt=datetime.strftime(datetime.utcnow(),'%Y-%m')
 
+    def __str__(self):
+        return repr(self.wis)
+
+    def __repr__(self):
+        return repr(self.wis)
+
     def wisdom_info(self):
         print("")
         print("WISDOM NOTICE")
         print("=============")
-        print("If you're done preparing antab files and they are ready for VLBeer, please consider sharing wisdom by executing 'share_wisdom.py' command in this directory")
+        print("If you're done preparing antab files and they are ready for VLBeer, please consider sharing wisdom by executing 'share_wisdom.py' command in {} directory".format(os.getcwd()))
         print("")
         print("")
 
@@ -80,7 +86,8 @@ class UserWisdom():
 
     def store(self,wis):
         '''
-        wis - dict('x' : array, 'y' : array, 'x0':array, 'y0': array, 'ridx': list)
+        wis - dict('x' : array, 'y' : array, 'x0':array, 'y0': array, 'ridx': list) -- depreciated
+        wis - dict('X' : array, 'Y' : array)
         '''
         self.wis=wis
         # fname=os.path.join(

@@ -1270,14 +1270,14 @@ def get_tcal(lofq,pol,freq,station,cfg=None, rxgfiles=None, verbosity=0, **kwarg
     # global rxgfiles
 
     if rxgfiles:
-        rxglist = [caldir+i for i in rxgfiles]
+        rxglist = [os.path.join(caldir,i) for i in rxgfiles]
         # rxglist = rxgfiles
     else:
         rxglist=[]
         lall=os.listdir(caldir)
         for i in lall:
             if i[-4:]=='.rxg':
-                rxglist.append(caldir+i)                                    #obtain .rxg format files
+                rxglist.append(os.path.join(caldir,i))                                    #obtain .rxg format files
     
     if verbosity>1:
         print(rxglist)

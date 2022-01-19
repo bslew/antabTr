@@ -1,5 +1,6 @@
 SHELL=/bin/bash
 
+PLOT_FN=~/programy/cpems/pyth/venv-ubuntu20/bin/plot_function.py
 SCHED=sessions/${SESSION}/EVNSchedule.txt
 SESSION=sessions/May-Jun21
 SESSION=`dirname ${SCHED}`
@@ -10,15 +11,35 @@ VENV=venv
 #	-mkdir -p ${LOGDIR}
 
 install: 
+	@echo "Installing python package"
+	source ${VENV}/bin/activate && cd python3 && python setup.py install
+	source ${VENV}/bin/activate && cp sh/share_wisdom.sh ${VENV}/bin
+
+	@echo "Installing scripts"
+	install sh/antabTr.sh venv/bin/
+
+	@echo "Installing config file"
 	-mkdir -p $(HOME)/.config/antabfs/
-	@echo "This will override your current config file ($(HOME)/.config/antabfs/antabfs.ini). Press enter to continue..."
+	@echo "This will override your current config file ($(HOME)/.config/antabfs/antabfs.ini)."
+	@echo "The original file will be moved to $(HOME)/.config/antabfs/antabfs.ini.bak"
+	@echo "Press enter to continue..."
 	@read
+	@if [ -f $(HOME)/.config/antabfs/antabfs.ini ]; then mv $(HOME)/.config/antabfs/antabfs.ini $(HOME)/.config/antabfs/antabfs.ini.bak ; fi
 	cp antabfs.ini $(HOME)/.config/antabfs/antabfs.ini
 	@echo "done"
 
-	source ${VENV}/bin/activate && cd python3 && python setup.py install
-	source ${VENV}/bin/activate && cp sh/share_wisdom.sh ${VENV}/bin
-	
+
+help:
+	@echo ""
+	@echo "USAGE EXAMPLE"
+	@echo ""
+	@echo "make SCHED=sessions/jan22/eEVN-180122.txt dw_rxg"
+	@echo "make SCHED=sessions/jan22/eEVN-180122.txt plot_rxg"
+	@echo "make SCHED=sessions/jan22/eEVN-180122.txt logs"
+	@echo "make SCHED=sessions/jan22/eEVN-180122.txt antab"
+	@echo ""
+	@echo ""
+
 dw_example:
 	scp oper@fs6:/usr2/log/gm076tr.log log
 
@@ -28,8 +49,8 @@ dw_rxg:
 	cd ${SESSION}/rxg_files && for f in `ls *.rxg`; do dst=`echo $$f | sed -e "s/\b\(.\)/\u\1/"`; mv $$f $$dst; done
 
 plot_rxg:
-	cd ${SESSION}/rxg_files && less Trl.rxg|grep rcp |awk 'NR>3 && NR<65 {print NR,$$2,$$3}'  | python3 ~/programy/cpems/pyth/plot_function.py stdin -x 1 -y 2 --xlabel 'freq [MHz]' --ylabel 'Tcal RCP [K]' --title `date +%Y-%m-%d` -o Trl-RCP-`date +%Y-%m-%d`.rxg.jpg --save --show
-	cd ${SESSION}/rxg_files && less Trl.rxg|grep lcp |awk 'NR>3 && NR<65 {print NR,$$2,$$3}'  | python3 ~/programy/cpems/pyth/plot_function.py stdin -x 1 -y 2 --xlabel 'freq [MHz]' --ylabel 'Tcal LCP [K]' --title `date +%Y-%m-%d` -o Trl-LCP-`date +%Y-%m-%d`.rxg.jpg --save --show
+	cd ${SESSION}/rxg_files && less Trl.rxg|grep rcp |awk 'NR>3 && NR<65 {print NR,$$2,$$3}'  | ${PLOT_FN} stdin -x 1 -y 2 --xlabel 'freq [MHz]' --ylabel 'Tcal RCP [K]' --title `date +%Y-%m-%d` -o Trl-RCP-`date +%Y-%m-%d`.rxg.jpg --save --show
+	cd ${SESSION}/rxg_files && less Trl.rxg|grep lcp |awk 'NR>3 && NR<65 {print NR,$$2,$$3}'  | ${PLOT_FN} stdin -x 1 -y 2 --xlabel 'freq [MHz]' --ylabel 'Tcal LCP [K]' --title `date +%Y-%m-%d` -o Trl-LCP-`date +%Y-%m-%d`.rxg.jpg --save --show
 
 logs: projs dw_logs clean_logs fix_logs
 
@@ -54,12 +75,12 @@ clean_logs:
 #	cd ${LOGDIR} && sed -n -e '/,$$$$$$$$$$,/p' n21l2tr.log
 
 fix_logs:
-	cd ${LOGDIR} && for l in `ls *.log`; do echo $$l;  python ../../../fix-tsys.py $$l > $$l.fixed ;  mv  $$l.fixed  $$l; done
+	. ${VENV}/bin/activate && cd ${LOGDIR} && for l in `ls *.log`; do echo $$l; fix-tsys.py $$l > $$l.fixed ;  mv  $$l.fixed  $$l; done
 
 check_venv:
 	source ${VENV}/bin/activate
 antab: 
-	. ${VENV}/bin/activate && cd ${LOGDIR} && for l in `ls *.log`; do  ../../../antabfs_tassili.sh $$l; done
+	. ${VENV}/bin/activate && cd ${LOGDIR} && for l in `ls *.log`; do antabTr.sh $$l; done
 
 archive_rxg:
 	-rm -r ${LOGDIR}/rxg_files

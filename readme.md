@@ -93,7 +93,7 @@ Go to your logs directory and use the antabTr.py program instead of antabfs.py:
 antabTr.py ea065btr.log
 ```
 
-Any preprocessing of the log files that were necessary before should also be
+Any pre-processing of the log files that were necessary before should also be
 done with `antabTr.py` program
 
 ## Plotting .awpkl files
@@ -104,7 +104,7 @@ In order to plot wisdom from awpkl file use eg:
 antabTr.py --plot_wisdom wisdom/example.awpkl
 ```
 
-awpkl files are typically located in "wisdom" sub-directory.
+awpkl files are typically located in "wisdom" subdirectory.
 
 
 ## Extracting wisdom files from past EVN sessions data

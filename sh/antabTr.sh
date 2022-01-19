@@ -7,7 +7,7 @@ name="${f%.*}"
 echo ${name%.*}
 
 if [ ! -f $name.antabfs ]; then
-    python ../../../antabfs_tassili.py $fname
+    antabTr.py $fname
 else
     echo $name.antabfs already exists, skipping
 fi

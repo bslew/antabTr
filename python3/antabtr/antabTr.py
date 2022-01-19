@@ -372,7 +372,8 @@ class Selection(object):    #clase para la selección manual de los datos
         self.x=np.array(x);self.y=np.array(y);self.block=block;self.title=title
         self.xrectangle=[];self.yrectangle=[]
         self.delIndX=[]
-        self.wisdom={'x0' : x, 'y0': y, 'x': [], 'y':[], 'ridx' : []}
+        # self.wisdom={}
+        self.wisdom={'x0' : x, 'y0': y, 'x': [], 'y':[], 'ridx' : [], 'X' : y, 'Y' : y}
         # self.BLwisdom_x0=x
         # self.BLwisdom_y0=y
         # self.BLwisdom_x=[]
@@ -494,6 +495,7 @@ class Selection(object):    #clase para la selección manual de los datos
             self.wisdom['ridx'].extend(rem_idcs)
             self.wisdom['x']=self.x
             self.wisdom['y']=self.y
+            self.wisdom['Y']=self.y
             removed_idx=self.y==1
             self.fit,self.low,self.up,self.inx,self.iny,self.outx,self.outy=outliers(self.block,self.x,self.y,self.tolerance)
             
@@ -817,10 +819,17 @@ def main(argv=None):
 
 
     cfg=config_file.readConfigFile(verbosity=args.verbose)
-    
+    if args.rxgDir!='':
+        cfg.set('CALIB','rxgDir',args.rxgDir)
+        print('Overriding config file rxgDir value. Will use: {}'.format(cfg['CALIB']['rxgDir']))
+        
     if args.plot_wisdom!='':
         wd=wisdom.UserWisdom(cfg).load(args.plot_wisdom)
         vis.plot_wisdom(args,wd)
+        exit(0);
+    if args.print_wisdom!='':
+        wd=wisdom.UserWisdom(cfg).load(args.print_wisdom)
+        print(wd)
         exit(0);
     
     
@@ -959,8 +968,8 @@ def main(argv=None):
                     alltsys_aux.append(results.y); 
 
                     blw.store({
-                        'X' : results.wisdom['y'],
-                        'Y': results.wisdom['y'],
+                        'X' : results.wisdom['X'],
+                        'Y': results.wisdom['Y'],
                         'title' : bbclist[i],
                         'log' : logFileName,
                               })

@@ -246,7 +246,10 @@ class WisdomExtractor():
             return x,y,False
 
         if np.any(y<self.cfg.getfloat('wisdom','minTsys')):
-            print('ignoring due to possibly not cleaned data (channel: {}, max Tsys val thres: {})'.format(channel, self.cfg.getfloat('wisdom','minTsys')))
+            print('ignoring due to possibly not cleaned data (channel: {}, min Tsys val thres: {})'.format(channel, self.cfg.getfloat('wisdom','minTsys')))
+            return x,y,False
+        if np.any(x<0.):
+            print('ignoring due to possibly wrong data (channel: {}, min input Tsys val thres: {})'.format(channel, 0.))
             return x,y,False
 
         return x,y,True

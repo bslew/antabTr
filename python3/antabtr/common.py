@@ -1278,7 +1278,8 @@ def get_tcal(lofq,pol,freq,station,cfg=None, rxgfiles=None, verbosity=0, **kwarg
         if os.path.isdir(caldir):
             lall=os.listdir(caldir)
         else:
-            print("Warning: caldir ({}) not found".format(caldir))
+            if verbosity>0:
+                print("Warning: caldir ({}) not found".format(caldir))
         for i in lall:
             if i[-4:]=='.rxg':
                 rxglist.append(os.path.join(caldir,i))                                    #obtain .rxg format files

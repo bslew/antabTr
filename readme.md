@@ -175,7 +175,8 @@ In time, the wisdom will be made publicly available via [antab-wisdom](https://g
 repository.
 
 **Do not share wisdom files in case when you decide to upload noisy (i.e. not cleaned)
-data to VLBeer, unless the data doesn't really contain any RFI.**
+data to VLBeer, unless the data doesn't really contain any RFI
+that should be tagged for removal in the antabTr.py program.**
 
 ### What is shared?
 

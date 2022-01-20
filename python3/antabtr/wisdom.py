@@ -241,6 +241,10 @@ class WisdomExtractor():
         if np.median(y)>self.wisdom_maxTsys:
             return x,y,False
 
+        if np.any(y>self.cfg.getfloat('wisdom','maxTsys')):
+            print('ignoring due to possibly not cleaned data (channel: {}, max Tsys val thres: {})'.format(channel, self.cfg.getfloat('wisdom','maxTsys')))
+            return x,y,False
+
         return x,y,True
         
     def extract_wisdom(self):

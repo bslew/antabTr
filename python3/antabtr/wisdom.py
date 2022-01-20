@@ -197,6 +197,10 @@ class WisdomExtractor():
         y=y[ist:ien]
         # print(ist,ien)
 
+        if len(x)<self.wisdom_min_length:
+            print("Ignoring due to {}<{} length of tptsys (channel: {})".format(len(x),self.wisdom_min_length,channel))
+            return x,y,False
+
 
         # normalize due to missing calibration information
         f=list(np.array(y/x*self.input_target_resolution,dtype=int))

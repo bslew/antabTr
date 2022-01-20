@@ -174,6 +174,9 @@ please send your public ssh-key to the author.
 In time, the wisdom will be made publicly available via [antab-wisdom](https://github.com/bslew/antab-wisdom)
 repository.
 
+**Do not share wisdom files in case when you decide to upload noisy (i.e. not cleaned)
+data to VLBeer.**
+
 ### What is shared?
 
 Only wisdom files are being shared. Wisdom files are python3 pickled dictionaries containing the name of log file,

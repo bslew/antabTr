@@ -970,6 +970,7 @@ def main(argv=None):
                     blw.store({
                         'X' : results.wisdom['X'],
                         'Y': results.wisdom['Y'],
+                        'ridx' : results.wisdom['ridx'],
                         'title' : bbclist[i],
                         'log' : logFileName,
                               })

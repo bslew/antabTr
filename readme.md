@@ -10,8 +10,8 @@ The program also:
 - unifies tabs/spaces convention of the original program, 
 - improves modularization/re-usability of the code,
 - provides support for configuration files and command line parser, 
-- helps extracting data from log/antabfs files (e.g from past EVN sessions) and 
-- provides basic plotting options for the gathered outputs
+- helps extracting data from log/antabfs files (e.g from past EVN sessions),
+- provides basic plotting options for the gathered outputs and
 - introduces experimental, Makefile-based, antab files processing pipeline.
 
 This version of the program is developed at Toruń VLBI station, but the core functionality

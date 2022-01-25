@@ -3,14 +3,16 @@
 This package ports the original antabfs program 
 (see [VLBI-utilities](https://github.com/evn-vlbi/VLBI-utilities) repository) 
 to python3 and implements several other modifications. The main rationale behind this
-package is to enable machine learning 
+package is to enable gathering information provided by users in order to
+help building training sets that will be useful in machine learning 
 approach to generating antab files automatically. 
-The program also unifies tabs/spaces convention of the original program, 
-improves modularization/re-usability of the code,
-provides support for configuration files, command line parser, extracting data from
-log/antabfs files (e.g from past sessions) and provides basic 
-plotting options for the gathered outputs. It also
-introduces experimental, Makefile-based, antab files processing pipeline.
+The program also:
+- unifies tabs/spaces convention of the original program, 
+- improves modularization/re-usability of the code,
+- provides support for configuration files and command line parser, 
+- helps extracting data from log/antabfs files (e.g from past EVN sessions) and 
+- provides basic plotting options for the gathered outputs
+- introduces experimental, Makefile-based, antab files processing pipeline.
 
 This version of the program is developed at Toruń VLBI station, but the core functionality
 related to processing logs and generating antabs is largely unchanged and compatible with

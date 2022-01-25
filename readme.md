@@ -6,11 +6,11 @@ to python3 and implements several other modifications. The main rationale behind
 package is to enable machine learning 
 approach to generating antab files automatically. 
 The program also unifies tabs/spaces convention of the original program, 
-improves modularization and re-usability of the code,
-provides support for configuration files, command line parser, reading data from
-vlbeer for building ML training sets from past sessions and provides basic 
-plotting options for the gathered data. It also
-introduces experimental, Makefile based, antab files processing pipeline.
+improves modularization/re-usability of the code,
+provides support for configuration files, command line parser, extracting data from
+log/antabfs files (e.g from past sessions) and provides basic 
+plotting options for the gathered outputs. It also
+introduces experimental, Makefile-based, antab files processing pipeline.
 
 This version of the program is developed at Toruń VLBI station, but the core functionality
 related to processing logs and generating antabs is largely unchanged and compatible with
@@ -86,43 +86,6 @@ antabTr.py ea065btr.log
 Any pre-processing of the log files that were necessary before should also be
 done with `antabTr.py` program
 
-## Plotting .awpkl files
-
-In order to plot wisdom from awpkl file use eg:
-
-```
-antabTr.py --plot_wisdom wisdom/example.awpkl
-```
-
-Example wisdom data
-
-![wisdom data](docs/wisdom.png)
-
-awpkl files are typically located in "wisdom" subdirectory.
-
-
-## Extracting wisdom files from past EVN sessions data
-
-The provided `extract_wisdom.py` script along with `antabTr.py` can be used to automatically extract wisdom from data sent to VLBeer. See
-
-```
-extract_wisdom.py --help
-```
-
-This is done by e.g.
-
-```
-antabTr.py --extract_wisdom --antabfs clean/vlbeer-mar18-n18c1ys.antabfs clean/vlbeer-mar18-n18c1ys.log
-```
-
-The program extracts the Tsys data from the log file even if the calibration is 
-not available and stores it as (noisy) inputs. The target data is taken from the corresponding
-antab file. The calibration of the input is inferred from the most likely target/input ratio,
-although several other check are performed before the extracted wisdom enters the training
-set. Extracting wisdom also automatically rejects parts of the data from the beginning
-and end of the session (controlled by parameters in the configuration files) as it is not easy 
-to clean those regions manually with the original (and current) version of the the antabfs
-program.
 
 
 # Wisdom
@@ -144,10 +107,25 @@ This is one of the reasons why wisdom is collected.
 If you cancel execution of the antabTr.py program
 before saving your final .antab file and then restart processing the same log file,
 the program will continue from the point your left off using the wisdom data stored in the local
-directory. The wisdom files are stored by default in the 'wisdom' sub-directory.
+directory. The wisdom files are stored by default in the 'wisdom' sub-directory
+in .awpkl files.
 The wisdom files contain Tsys data from both the log file and from the generated antab file.
 To enlarge training, under certain conditions set such information can also be extracted for past EVN sessions from analyses 
 of both .log and .antab files.
+
+## Plotting .awpkl files
+
+In order to plot wisdom from awpkl file use eg:
+
+```
+antabTr.py --plot_wisdom wisdom/example.awpkl
+```
+
+Example wisdom data
+
+![wisdom data](docs/wisdom.png)
+
+awpkl files are typically located in "wisdom" subdirectory.
 
 ## Correcting/re-generating antab files
 
@@ -201,6 +179,44 @@ If you shared the wisdom once and then decided to correct and regenerate the ant
 share_wisdom.py again. The files will be uploaded again and their previous version will be overwritten if
 the updated version of the antab files is generated the same month as the previous one which results from
 the naming convention of the wisdom files.
+
+
+
+## Extracting wisdom files from past EVN sessions data
+
+Although, there is not enough information in log and antabfs files (on VLBeer)
+to recreate information about which data the user has removed during antab preparation,
+at least some information can be extracted, as many years of user experience ha
+already been uploaded to VLBeer server.
+
+The provided `extract_wisdom.py` script along with `antabTr.py` can be 
+used to extract 
+part of that information stored in antabfs and log files. 
+See
+
+```
+extract_wisdom.py --help
+```
+
+This is done by e.g.
+
+```
+antabTr.py --extract_wisdom --antabfs clean/vlbeer-mar18-n18c1ys.antabfs clean/vlbeer-mar18-n18c1ys.log
+```
+
+The program extracts Tsys from the log file even if the calibration is 
+not available and stores it as (noisy) inputs. The target data is taken from the corresponding
+antab file. The calibration of the input is inferred from the most likely (most frequent) target/input ratio,
+although several other check are performed before the extracted wisdom enters the training
+set. Extracting wisdom also automatically rejects parts of the data from the beginning
+and end of the session (controlled by parameters in the configuration files) as it is not easy 
+to clean those regions manually with the original (and current) version of the the antabfs
+program.
+
+Unfortunately, there is no way to restore information about which particular data points
+the user have manually marked as noisy during the antab preparation, and hence 
+training sets generated this way, although larger, will necessarily be noisier.
+
 
 
 # AUTHOR

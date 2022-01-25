@@ -101,16 +101,16 @@ Any pre-processing steps on logs that are possibly performed prior to using anta
 performed when using antabTr.py. The Makefile scripts makes some of that steps easier, but using 
 the Makefile pipeline is currently in experimental stage (type `make help` for more information)
 
-Since typically the Tcal information from RXG files is not sent to VLBeer server it is not 
+Since typically the Tcal information from RXG files is not sent to VLBeer server, it is not 
 directly possible to extract the wisdom from .antab nor from .log files, or from the combination of the two. 
 This is one of the reasons why wisdom is collected.
 
 ## Storing wisdom files
 If you cancel execution of the antabTr.py program
-before saving your final .antab file and then restart processing the same log file,
+before saving your final `.antabfs` file and then restart processing the same log file,
 the program will continue from the point your left off using the wisdom data stored in the local
 directory. The wisdom files are stored by default in the 'wisdom' sub-directory
-in .awpkl files.
+in `.awpkl` files.
 The wisdom files contain Tsys data from both the log file and from the generated antab file.
 To enlarge training, under certain conditions set such information can also be extracted for past EVN sessions from analyses 
 of both .log and .antab files.
@@ -161,7 +161,10 @@ that should be tagged for removal in the antabTr.py program.**
 ### What is shared?
 
 Only wisdom files are being shared. Wisdom files are python3 pickled dictionaries containing the name of log file,
-the input Tsys data and cleaned Tsys data.
+the input Tsys (`X` key in the pickled dictionary) data, 
+cleaned Tsys data (`Y` key) and perhaps what is most interesting
+the indexes of the points that were marked as noise by the user. Those, if present are 
+found under `ridx` key in the pickled dictionary.
 The naming of the wisdom files follows convention:
 
 `yyyy-mm.logfile_prefix.user_name.bbc.awpkl`

@@ -251,10 +251,10 @@ The antabfs file '**ec071mtr.antabfs**' was generated using this version of the 
 ```
 antabTr.py ec071mtr.log --rxgDir rxg_files/
 ```
-The program have generated wisdom subdirectory
+The program created wisdom subdirectory
 and stored wisdom files in it.
 
-A comparison the two files confirms the files are identical.
+A comparison the two files confirms they are identical.
 
 ```
 diff ec071mtr.antabfs ec071mtr.antabfs.orig

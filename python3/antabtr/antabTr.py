@@ -825,7 +825,10 @@ def main(argv=None):
         
     if args.plot_wisdom!='':
         wd=wisdom.UserWisdom(cfg).load(args.plot_wisdom)
-        vis.plot_wisdom(args,wd)
+        if args.verbose>0:
+            vis.plot_wisdom_diffrel(args,wd)
+        else:
+            vis.plot_wisdom(args,wd)
         exit(0);
     if args.print_wisdom!='':
         wd=wisdom.UserWisdom(cfg).load(args.print_wisdom)

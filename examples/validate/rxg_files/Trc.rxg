@@ -1,0 +1,199 @@
+* trc.rxg - C band receiver parameter definition
+*
+* first line: LO values and ranges, format:
+*  type   frequencies
+* if type is range, the two values: lower and upper frequencies
+* if type is fixed, then one or two fixed value
+* frequencies in MHz
+*
+range 3800.0 5200.0
+* fixed 4200.00
+* 2nd line: creation date
+* format:  yyyy ddd or yyyy mm dd (0 is valid for all for intial set-up)
+*
+2021 06 02
+* DBBC cont cal 80 Hz
+* 3rd line: FWHM beamwidthm format:
+*   model value
+*
+* if type is frequncy, then fwhm=value*1.22*c/(freq*diameter)
+*                      value is 1.0 if omitted
+* if type is constant, then fwhm=value (degrees)
+*
+frequency 1.0
+*
+* 4th line polarizations available
+*
+* one of both of lcp and rcp
+*
+lcp rcp
+*
+* 5th line: DPFU (degrees/Jansky) for polarizations in previous line in order
+* KB comment: is equal to Ae/2760, where Ae is the effective aperture [m^2]
+* 0.1400 0.1312 modified by kb on March 6, 2007
+0.1400 0.1400
+*
+* 6th line: gain curve (only one) for ALL polarizations in 4th line
+* TYPE FORM COEFFICENTS ... [opacity_corrected]
+*
+* FORM = POLY only for now
+* TYPE - ELEV and ALTAZ only for now
+* KB comment: ALTAZ means a function of the (zenith angle/distance in degrees)
+* COEFFICENTS - variable number of number values
+* opacity_corrected - optional final field, if present it indicates that
+*                     the curve is opacity corrected
+*
+* maximum coefficents 10
+*
+* ALTAZ POLY 1.0 -1.0825e-4 -8.377e-7 -5.491e-8
+* The above is equivalent to:
+ELEV POLY 0.943443 1.59335e-3 -1.56634e-5 5.491e-8
+*
+* 7th and following lines: tcal versus frequency
+*     Format: POL FREQ TCAL
+*     where:
+*            POL    polarization rcp or lcp
+*            FREQ   frequency (MHz)
+*            TCAL   degrees K
+*
+*     ends with a line containing end_tcal_table
+*
+*     MAXIMUM ENTRIES 400, group by polarization
+*                          then sorted by increasing freq
+*
+*
+lcp  4738.00   2.50
+lcp  4746.00   3.15
+lcp  4754.00   3.00
+lcp  4762.00   2.59
+lcp  4770.00   2.68
+lcp  4778.00   2.64
+lcp  4786.00   2.46
+lcp  4794.00   2.34
+lcp  4802.00   2.16
+lcp  4810.00   2.15
+lcp  4818.00   2.14
+lcp  4826.00   2.15
+lcp  4834.00   2.05
+lcp  4842.00   2.02
+lcp  4850.00   1.96
+lcp  4858.00   1.97
+lcp  4866.00   2.03
+lcp  4874.00   2.04
+lcp  4882.00   2.13
+lcp  4890.00   2.13
+lcp  4898.00   2.17
+lcp  4906.00   2.17
+lcp  4914.00   2.27
+lcp  4922.00   2.26
+lcp  4930.00   2.24
+lcp  4938.00   2.15
+lcp  4946.00   2.04
+lcp  4954.00   1.96
+lcp  4962.00   1.84
+lcp  4970.00   1.76
+lcp  4978.00   1.65
+lcp  4986.00   1.65
+lcp  4994.00   1.64
+lcp  5002.00   1.63
+lcp  5010.00   1.65
+lcp  5018.00   1.65
+lcp  5026.00   1.66
+lcp  5034.00   1.75
+lcp  5042.00   1.77
+lcp  5050.00   1.84
+lcp  5058.00   1.87
+lcp  5066.00   1.92
+lcp  5074.00   2.07
+lcp  5082.00   1.83
+lcp  5090.00   2.21
+lcp  5098.00   2.19
+lcp  5106.00   2.53
+lcp  5114.00   2.90
+lcp  5122.00   3.24
+lcp  5130.00   2.19
+lcp  5138.00   2.50
+lcp  5146.00   2.34
+lcp  5154.00   3.09
+lcp  5162.00   3.12
+lcp  5170.00   3.23
+lcp  5178.00   3.93
+rcp  4706.00   2.85
+rcp  4714.00   4.33
+rcp  4722.00   3.33
+rcp  4730.00   2.86
+rcp  4738.00   2.51
+rcp  4746.00   2.50
+rcp  4754.00   2.53
+rcp  4762.00   2.46
+rcp  4770.00   2.44
+rcp  4778.00   2.36
+rcp  4786.00   2.33
+rcp  4794.00   2.25
+rcp  4802.00   2.14
+rcp  4810.00   2.08
+rcp  4818.00   2.03
+rcp  4826.00   1.97
+rcp  4834.00   1.92
+rcp  4842.00   1.87
+rcp  4850.00   1.83
+rcp  4858.00   1.83
+rcp  4866.00   1.80
+rcp  4874.00   1.76
+rcp  4882.00   1.77
+rcp  4890.00   1.77
+rcp  4898.00   1.83
+rcp  4906.00   1.84
+rcp  4914.00   1.87
+rcp  4922.00   1.85
+rcp  4930.00   1.84
+rcp  4938.00   1.76
+rcp  4946.00   1.67
+rcp  4954.00   1.64
+rcp  4962.00   1.52
+rcp  4970.00   1.45
+rcp  4978.00   1.37
+rcp  4986.00   1.34
+rcp  4994.00   1.28
+rcp  5002.00   1.26
+rcp  5010.00   1.27
+rcp  5018.00   1.27
+rcp  5026.00   1.32
+rcp  5034.00   1.25
+rcp  5042.00   1.30
+rcp  5050.00   1.36
+rcp  5058.00   1.45
+rcp  5066.00   1.38
+rcp  5074.00   1.72
+rcp  5082.00   1.66
+rcp  5090.00   1.77
+rcp  5098.00   1.88
+rcp  5106.00   1.93
+rcp  5114.00   2.47
+rcp  5122.00   3.23
+rcp  5130.00   1.93
+rcp  5138.00   2.73
+rcp  5146.00   3.17
+rcp  5154.00   2.73
+rcp  5162.00   2.63
+rcp  5170.00   3.12
+rcp  5178.00   3.19
+end_tcal_table
+*  
+* Trec: receiver temperature
+*
+0.0 0.0
+*
+* Spill over table
+*
+* 9th and following lines: Spillover versus frequency
+*     Format: Elevation Tspill
+*     where:
+*            POL    polarization rcp or lcp
+*            FREQ   frequency (MHz)
+*            TCAL   degrees K
+*
+*     ends with a line containing end_spillover_table
+*
+*     MAXIMUM ENTRIES 20
+end_spillover_table

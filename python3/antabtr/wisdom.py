@@ -55,15 +55,31 @@ class UserWisdom():
         return self.wis['y']
 
     def get_title(self):
-        return self.wis['title']
+        try:
+            return self.wis['title']
+        except KeyError:
+            pass
+        return ''
 
     def get_logfile(self):
-        return self.wis['log']
+        try:
+            return self.wis['log']
+        except:
+            pass
+        return ''
 
     def get_inputs(self):
         if 'X' in self.wis:
             return self.wis['X']
         return self.wis['y0']
+
+    def get_removed_mask(self):
+        '''
+        return 1-d bool array that can be used for selecting removed data points
+        '''
+        res=np.ones(len(self.get_inputs()))
+        res[self.wis['ridx']]=0
+        return np.array(res,dtype=bool)
         
     
     def get_targets(self):

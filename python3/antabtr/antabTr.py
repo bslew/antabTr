@@ -558,6 +558,9 @@ def smfit(x,y):        #fit data, lower and upper limits
     if len(x)>1:                        #it would be convenient to rewrite this without statsmodels, using pyplot and a exp func
         x=np.array(x)
         y=np.array(y)
+        # plt.plot(x,y)
+        # plt.title('%i'%len(x))
+        # plt.show()
         X=np.column_stack((x,np.ones(len(x))))
         res = smapi.OLS(y,X).fit()
         prstd, low, up = wls_prediction_std(res)
@@ -605,6 +608,10 @@ def outliers(block,x,y,tolerance):
     fit=[];low=[];up=[]
     for j in range(min(block),max(block)+1):                #fit data in diferent parts
         #no hay que quitar los outliers sino darles el valor del fit o de la moda
+        # print(block.shape)
+        # print(len(set(block)))
+        # plt.plot(block)
+        # plt.show()
         cond=np.array(block)==j
         xblock=np.extract(cond,x)
         yblock=np.extract(cond,y)

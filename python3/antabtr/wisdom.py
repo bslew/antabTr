@@ -160,7 +160,8 @@ class WisdomExtractor():
     def __init__(self,args,cfg):
         self.args=args
         self.cfg=cfg
-        maxlim=cfg.getfloat('Tsys','maxlim')
+        maxlim=cfg.getfloat('Tsys','maxTsys')
+        minlim=cfg.getfloat('Tsys','minTsys')
 
         self.logFileName=args.paths[0]
         self.logF = common.logFile(self.logFileName,cfg=cfg, 
@@ -176,7 +177,7 @@ class WisdomExtractor():
         tsysline_aux=tsysline
         block_aux=block
         tptsys=np.matrix.transpose(np.array(tsysline_aux))
-        self.X=common.prefilter(tptsys,block_aux,maxlim)
+        self.X=common.prefilter(tptsys,block_aux,maxlim,minlim)
         # print(X)
         # self.x0=np.arange(len(self.X.T))
         

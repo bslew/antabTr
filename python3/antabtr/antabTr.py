@@ -82,6 +82,7 @@ import struct
 import pydoc
 import pickle
 from antabtr import config_file, wisdom, antabTr_parser,common,vis
+from scipy.special import erfinv
 
 station = ""
 # rxgfiles = ""
@@ -367,7 +368,7 @@ class antabHeader:
 #--------- Alberto Moreno section --------------------------------------------------------------------
 class Selection(object):    #clase para la selección manual de los datos
 
-    def __init__(self,x,y,block,title):
+    def __init__(self,x,y,block,title,**kwargs):
         sec_loc = mdates.SecondLocator()
         self.x=np.array(x);self.y=np.array(y);self.block=block;self.title=title
         self.xrectangle=[];self.yrectangle=[]
@@ -382,69 +383,149 @@ class Selection(object):    #clase para la selección manual de los datos
         self.press = False
         #self.tolerance=0.05
         self.tolerance=0.1
-        self.fig = plt.figure(figsize=(13,8))
-        self.ax = self.fig.add_subplot(111)
-        self.ax.set_title('Tsys %s'%self.title)
-        self.ax.set_xlabel('Time')
-        self.ax.set_ylabel('Tsys [K]')
-        self.ax.grid()
-     # plt.margins(0.2)
+        if 'alpha' in kwargs.keys():
+            self.tolerance=kwargs['alpha']
         
-        self.timeInit = self.x[0]
-        new_x = []
-        new_y = []
-        new_block = []
-        for i in range(0,len(self.x)):
-            auxVal = (self.x[i] - self.timeInit) * (24.*60.)
-            if auxVal >= 0:
-                new_x.append(auxVal)
-                new_y.append(self.y[i])
-                new_block.append(self.block[i])
-            else:
-                self.delIndX.append(i)
-
-        self.x = np.array(new_x)
-        self.y = np.array(new_y)
-        self.block = np.array(new_block)
-
-        self.fit,self.low,self.up,self.inx,self.iny,self.outx,self.outy=outliers(self.block,self.x,self.y,self.tolerance)
+        self.clean_type='ols'
+        if 'clean_type' in kwargs.keys():
+            self.clean_type=kwargs['clean_type']
+        
+        
+        self.verbose=0
+        if 'verbose' in kwargs.keys():
+            self.verbose=kwargs['verbose']
+        
+        if self.clean_type=='ols':
+            self.fig = plt.figure(figsize=(13,8))
+            self.ax = self.fig.add_subplot(111)
+            self.ax.set_title('Tsys %s'%self.title)
+            self.ax.set_xlabel('Time')
+            self.ax.set_ylabel('Tsys [K]')
+            self.ax.grid()
+         # plt.margins(0.2)
+            
+            self.timeInit = self.x[0]
+            new_x = []
+            new_y = []
+            new_block = []
+            for i in range(0,len(self.x)):
+                auxVal = (self.x[i] - self.timeInit) * (24.*60.)
+                if auxVal >= 0:
+                    new_x.append(auxVal)
+                    new_y.append(self.y[i])
+                    new_block.append(self.block[i])
+                else:
+                    self.delIndX.append(i)
     
-        self.ax.plot(self.x,self.fit,'b-',label='fit')
-        self.ax.plot(self.x,self.low,'k--',label='lower/upper')
-        self.ax.plot(self.x,self.up,'k--')
-        self.ax.plot(self.outx,self.outy,'ro',label='outliers')
-        self.ax.plot(self.inx,self.iny,'g*',label='data')
-        self.ax.legend(loc='best')
-        #defining the limits of the plot
-        #self.xmin,self.xmax=plt.xlim()        
-        self.xmin = min(self.x)
-        self.xmax = max(self.x)        
-        self.ymin,self.ymax=plt.ylim()
-        xdiff = self.xmax - self.xmin
-        self.xmin=self.xmin-(xdiff*0.05)
-        self.xmax=self.xmax+(xdiff*0.05)
-        self.ymin=self.ymin-(self.ymax-self.ymin)*0.01
-        self.ymax=self.ymax+(self.ymax-self.ymin)*0.01
-        plt.xlim((self.xmin,self.xmax))
-        plt.ylim((self.ymin,self.ymax))
-        self.ax.figure.canvas.mpl_connect('button_press_event', self.on_press)
-        self.ax.figure.canvas.mpl_connect('button_release_event', self.on_release)
-        self.ax.figure.canvas.mpl_connect('motion_notify_event', self.on_motion)
-        self.fig.canvas.draw()
-        self.labels = []
-        for item in self.ax.get_xticklabels():
-            text = item.get_text()
-            if text != '':
-                text = text.replace('\u2212','')
-                value = (int(float(text))/(24.*60.)) + self.timeInit
-                day = int(value)
-                hour = int((value - day)*24)
-                minute = (value - day - (hour/24.))*24*60
-                text = '%d %02d:%05.2f' % (day,hour,minute)
-            self.labels.append(text)
-        self.ax.set_xticklabels(self.labels)
-        plt.show()
+            self.x = np.array(new_x)
+            self.y = np.array(new_y)
+            self.block = np.array(new_block)
+    
+            self.fit,self.low,self.up,self.inx,self.iny,self.outx,self.outy,ridx=outliers(self.block,self.x,self.y,self.tolerance)
         
+            self.ax.plot(self.x,self.fit,'b-',label='fit')
+            self.ax.plot(self.x,self.low,'k--',label='lower/upper')
+            self.ax.plot(self.x,self.up,'k--')
+            self.ax.plot(self.outx,self.outy,'ro',label='outliers')
+            self.ax.plot(self.inx,self.iny,'g*',label='data')
+            self.ax.legend(loc='best')
+            #defining the limits of the plot
+            #self.xmin,self.xmax=plt.xlim()        
+            self.xmin = min(self.x)
+            self.xmax = max(self.x)        
+            self.ymin,self.ymax=plt.ylim()
+            xdiff = self.xmax - self.xmin
+            self.xmin=self.xmin-(xdiff*0.05)
+            self.xmax=self.xmax+(xdiff*0.05)
+            self.ymin=self.ymin-(self.ymax-self.ymin)*0.01
+            self.ymax=self.ymax+(self.ymax-self.ymin)*0.01
+            plt.xlim((self.xmin,self.xmax))
+            plt.ylim((self.ymin,self.ymax))
+            self.ax.figure.canvas.mpl_connect('button_press_event', self.on_press)
+            self.ax.figure.canvas.mpl_connect('button_release_event', self.on_release)
+            self.ax.figure.canvas.mpl_connect('motion_notify_event', self.on_motion)
+            self.fig.canvas.draw()
+            self.labels = []
+            for item in self.ax.get_xticklabels():
+                text = item.get_text()
+                if text != '':
+                    text = text.replace('\u2212','')
+                    value = (int(float(text))/(24.*60.)) + self.timeInit
+                    day = int(value)
+                    hour = int((value - day)*24)
+                    minute = (value - day - (hour/24.))*24*60
+                    text = '%d %02d:%05.2f' % (day,hour,minute)
+                self.labels.append(text)
+            self.ax.set_xticklabels(self.labels)
+            plt.show()
+
+        else:
+            # binN=[1,20,30,40,50,100,200]
+            # binEq=[False,True2,4,10,20,40,100]
+            binN=[1]
+            bf_idx=0
+            chisq=[]
+            res_all=[]
+            for i,b in enumerate(binN):
+                make_equal=True
+                # if i==0:
+                make_equal=False
+                
+                if self.verbose>2:
+                    print('bin {}, make_equal: {}'.format(b,make_equal))
+                segments=bin_segments(self.block, binN=b, make_equal=make_equal)
+                counts=np.array([ len(segments[segments==x]) for x in set(segments) ])
+                segment_sigma=np.array([ np.std(self.y[segments==x]) for x in set(segments) ])
+                # print('segment_sigma',segment_sigma)
+                res=outliers(segments,self.x,self.y,self.tolerance,method=self.clean_type, verbose=self.verbose,sigma=np.median(segment_sigma))
+                # res=outliers(segments,self.x,self.y,self.tolerance,method=self.clean_type, verbose=self.verbose,sigma=np.mean(segment_sigma))
+                self.fit,self.low,self.up,self.inx,self.iny,self.outx,self.outy,ridx=res
+                res_all.append(res)
+                median_segment_size=np.median(counts)
+                x2=np.mean((self.fit-self.y)**2)/median_segment_size
+                if self.verbose>1:
+                    print('x2: {}, median_segment_size: {}'.format(x2,median_segment_size))
+                    print('np.median(segment_sigma): ',np.median(segment_sigma))
+                    print('np.mean(segment_sigma): ',np.mean(segment_sigma))
+                chisq.append(x2)
+
+                if self.verbose>2:
+                    fig=plt.figure(figsize=(14,10))
+                    plt.plot(self.inx,self.iny,'k.')
+                    plt.plot(self.inx,self.fit,'b-')
+                    plt.plot(self.outx,self.outy,'r.')
+                    plt.plot(self.x,self.low,'k--')
+                    plt.plot(self.x,self.up,'k--')
+                    plt.title('method: {}, x2: {}, median_segment_size: {}'.format(
+                        self.clean_type, x2, median_segment_size))
+                # plt.plot(self.x,self.low,'k-')
+                # plt.plot(self.x,self.up,'k-')
+                    plt.show()
+            bf_idx=np.argmin(np.array(chisq))
+            self.fit,self.low,self.up,self.inx,self.iny,self.outx,self.outy,ridx=res_all[bf_idx]
+
+            if self.verbose>0:
+                plt.plot(self.inx,self.iny,'g.')
+                plt.plot(self.x,self.fit,'b-')
+                plt.plot(self.outx,self.outy,'r.')
+                plt.plot(self.x,self.low,'b--')
+                plt.plot(self.x,self.up,'b--')
+                plt.title('best %i' % bf_idx )
+                plt.show()
+
+            # self.x=self.inx
+            # self.y=self.iny
+            
+            # print(ridx)
+            y=self.y
+            ridx=np.array(ridx,dtype=int)
+            # print(y[ridx])
+            y[ridx]=np.array(self.fit)[ridx]
+            self.wisdom['ridx'].extend(ridx)
+            self.wisdom['x']=self.x
+            self.wisdom['y']=y
+            self.wisdom['Y']=y
+            
 
     def getDeletedX(self):
         return self.delIndX
@@ -497,7 +578,7 @@ class Selection(object):    #clase para la selección manual de los datos
             self.wisdom['y']=self.y
             self.wisdom['Y']=self.y
             removed_idx=self.y==1
-            self.fit,self.low,self.up,self.inx,self.iny,self.outx,self.outy=outliers(self.block,self.x,self.y,self.tolerance)
+            self.fit,self.low,self.up,self.inx,self.iny,self.outx,self.outy,ridx=outliers(self.block,self.x,self.y,self.tolerance)
             
             #sustituir puntos malos por media geometrica o moda
             
@@ -554,6 +635,52 @@ def modifydata(x,y,block,xmax,xmin,ymax,ymin):
             y[i]=temp
     return y,removed_idcs
 #-----------------------------------------------------------------------------------------------------
+def linregfit(x,y,method='gls', alpha=0.05, verbose=0,sigma=None):
+    '''
+    '''
+    nsample = len(x)
+    pred=np.array([])
+    low=np.array([])
+    high=np.array([])
+
+    if nsample==1:
+        return y,y,y
+    
+    if nsample>1:
+        # X = np.column_stack((x, x**2,np.ones(nsample)))
+        X = np.column_stack((x, np.ones(nsample)))
+
+        if method=='gls':
+            res = smapi.OLS(y, X).fit()
+            pred_ols = res.get_prediction()
+            iv_l = pred_ols.summary_frame(alpha=alpha)["obs_ci_lower"]
+            iv_u = pred_ols.summary_frame(alpha=alpha)["obs_ci_upper"]
+        elif method=='rlm':
+            res = smapi.RLM(y, X).fit()
+            if sigma:
+                sigma_loc=sigma
+            else:
+                sigma_loc=np.sqrt(np.mean((res.fittedvalues-y)**2))
+            # sigma=res.bse[-1]
+            nsigma=erfinv(1.-alpha)*math.sqrt(2)
+            iv_l=res.fittedvalues-sigma_loc*nsigma
+            iv_u=res.fittedvalues+sigma_loc*nsigma
+        
+        if verbose>3:
+            print("alpha: ",alpha)
+            print("Parameters: ", res.params)
+            print("Standard errors: ", res.bse)
+            print("Predicted values: ", res.predict())
+        
+        
+        pred=res.fittedvalues
+        low=iv_l
+        high=iv_u
+    
+    return pred,low,high
+        
+
+
 def smfit(x,y):        #fit data, lower and upper limits
     if len(x)>1:                        #it would be convenient to rewrite this without statsmodels, using pyplot and a exp func
         x=np.array(x)
@@ -604,30 +731,88 @@ def finalplot(x,y,bbclist,partNum):    #plot all procesed data
     ax.set_xticklabels(labels)
     plt.show()
 #-----------------------------------------------------------------------------------------------------
-def outliers(block,x,y,tolerance):
+def outliers(block,x,y,tolerance,method='ols', **kwargs):
     fit=[];low=[];up=[]
-    for j in range(min(block),max(block)+1):                #fit data in diferent parts
-        #no hay que quitar los outliers sino darles el valor del fit o de la moda
-        # print(block.shape)
-        # print(len(set(block)))
-        # plt.plot(block)
-        # plt.show()
-        cond=np.array(block)==j
-        xblock=np.extract(cond,x)
-        yblock=np.extract(cond,y)
-        fitblock,lowblock,upblock=smfit(xblock,yblock)    #statsmodels to compute the fit and limits
-        fit=fit+fitblock.tolist()
-        low=low+lowblock.tolist()
-        up=up+upblock.tolist()
-    low=np.array(fit)-np.array(fit)*tolerance        #sometimes statsmodels doesn't return the correct lower and upper limits
-    up=np.array(fit)+np.array(fit)*tolerance
+    idx=np.arange(len(x))
+    # plt.plot(block)
+    # plt.show()
+
+    verbose=0
+    if 'verbose' in kwargs.keys():
+        verbose=kwargs['verbose']
+
+    sigma=None
+    if 'sigma' in kwargs.keys():
+        sigma=kwargs['sigma']
+
+    if method=='ols':
+    
+        for j in range(min(block),max(block)+1):                #fit data in diferent parts
+            #no hay que quitar los outliers sino darles el valor del fit o de la moda
+            # print(block.shape)
+            # print(len(set(block)))
+            cond=np.array(block)==j
+            xblock=np.extract(cond,x)
+            yblock=np.extract(cond,y)
+            fitblock,lowblock,upblock=smfit(xblock,yblock)    #statsmodels to compute the fit and limits
+            fit=fit+fitblock.tolist()
+            low=low+lowblock.tolist()
+            up=up+upblock.tolist()
+        low=np.array(fit)-np.array(fit)*tolerance        #sometimes statsmodels doesn't return the correct lower and upper limits
+        up=np.array(fit)+np.array(fit)*tolerance
+    else:
+        for j in range(min(block),max(block)+1):                #fit data in diferent parts
+            cond=np.array(block)==j
+            xblock=np.extract(cond,x)
+            yblock=np.extract(cond,y)
+            fitblock,lowblock,upblock=linregfit(xblock, yblock, method=method, alpha=tolerance, verbose=verbose, sigma=sigma)
+            fit=fit+fitblock.tolist()
+            low=low+lowblock.tolist()
+            up=up+upblock.tolist()
+    
     incond=(np.array(y)<=np.array(up))*(np.array(y)>=np.array(low))
     inx=np.extract(incond,x)
     iny=np.extract(incond,y)
     outcond=(np.array(y)>np.array(up))+(np.array(y)<np.array(low))
     outx=np.extract(outcond,x)
     outy=np.extract(outcond,y)
-    return fit,low,up,inx,iny,outx,outy
+    ridx=np.extract(outcond,idx)
+    return fit,low,up,inx,iny,outx,outy,ridx
+
+def bin_segments(block, binN=1, make_equal=False):
+    '''
+    block - 1-d array of entire data length, containing increasing integers that map
+    source observations history e.g.
+    
+                                .
+                                .
+                                .
+                   2-----------
+         1----------
+    0----
+    
+    The length of each segment can be different and proportional to time spend on given source.
+    This map can be used to select sub-set of data for eg. OLS outliers detection
+    
+    This function can combine segments in order to increase their length:
+    Eg.
+    
+                                .    
+                                .    
+                                .    
+                   1------------
+    0---------------
+    
+    
+    binN - defines how many neighbouring blocks will be combined
+    '''
+
+    if make_equal:
+        block=np.arange(len(block))
+
+    new_map=np.array(np.round(np.array(block,dtype=float)/binN),dtype=int)
+
+    return new_map
 #-----------------------------------------------------------------------------------------------------
 #-----------------------------------------------------------------------------------------------------
 def write_antab(fileOut,header,indexline,scanline,tsysline,block,time, tsyslog, setupTime, dpfuLines, polyelevLine, stationName):
@@ -874,12 +1059,16 @@ def main(argv=None):
     #antabH = antabHeader(logFileName)
     antabH = antabHeader(logF,cfg=cfg)  #FJB
 
-    bbclist=[];tsyswrite=[]
+    bbclist=[]
+    tsyswrite=[]
     tsyswrite_aux = []
     timewrite_aux = []
     blockwrite_aux = []
     # maxlim=10000
     maxlim=cfg.getfloat('Tsys','maxlim')
+    maxTsys=cfg.getfloat('Tsys','maxTsys')
+    minTsys=cfg.getfloat('Tsys','minTsys')
+    
 
     logData = logF.getLogData() # this should better return a dict or class
     header = logData[0] 
@@ -920,9 +1109,12 @@ def main(argv=None):
 
         hLines = header[bP].split('\n')[4:]
         bbclist = []
+        frequencies_GHz=[]
         for i in hLines:
             auxStr = i.split()
             bbclist.append(auxStr[4].strip(',') + ' ' + auxStr[5].strip(',')+' '+auxStr[9].strip(',')+', Freq '+auxStr[6]+' MHz, '+auxStr[3][0]+'CP' )
+            frequencies_GHz.append(float(auxStr[6])/1000)
+
 
         if bP == (len(setupTime)-1):
             endInd = len(time)    
@@ -945,7 +1137,8 @@ def main(argv=None):
 
 
         tptsys=np.matrix.transpose(np.array(tsysline_aux))
-        tptsys=common.prefilter(tptsys,block_aux,maxlim)    #filter negative values
+        # tptsys=common.prefilter(tptsys,block_aux,maxlim)    #filter negative values
+        tptsys=common.prefilter(tptsys,block_aux,maxTsys,minTsys)    #filter negative values
 
         # print('tptsys')
         # print(np.array(tptsys))
@@ -958,16 +1151,25 @@ def main(argv=None):
         removed_idx=[]
         for i in range(0,len(tptsys)):
             print('processing experiment: ',logFileName)
+            minTsys,maxTsys=common.get_band_Tsys_min_max(frequencies_GHz[i],cfg)
+            
             blw=wisdom.UserWisdom(cfg=cfg,logFileName=logFileName,idx=i)
             fully=tptsys[i][:]
             #if len(fully) != len(time_aux):
             #    continue
+            if args.verbose>0:
+                print('bbclist[i]', bbclist[i])
+                print('frequency [GHz]', frequencies_GHz[i])
+                print('using Tsys prefiltering min/max values: ', minTsys,maxTsys)
             if not debug:
                 if blw.have_wisdom():
                     alltsys_aux.append(blw.load().get_targets())
                     print('Using wisdom from file: {}'.format(blw.get_wisdom_fname()))
                 else:
-                    results=Selection(x,fully,block_aux,bbclist[i])
+                    results=Selection(x,fully,block_aux,bbclist[i],
+                                      clean_type=args.clean,
+                                      alpha=cfg.getfloat('clean','alpha'),
+                                      verbose=args.verbose)
                     delIndX = results.getDeletedX()
                     delIndX.reverse()
                     if delIndX != []:
@@ -977,12 +1179,14 @@ def main(argv=None):
                     removed_idx.append(delIndX)
                     alltsys_aux.append(results.y); 
 
+                    get_clean_type=lambda x: 'manual' if x=='ols' else x
                     blw.store({
                         'X' : results.wisdom['X'],
                         'Y': results.wisdom['Y'],
                         'ridx' : results.wisdom['ridx'],
                         'title' : bbclist[i],
                         'log' : logFileName,
+                        'method' : get_clean_type(args.clean),
                               })
                     # blw.store({
                     #     'x' : results.wisdom['x'], 

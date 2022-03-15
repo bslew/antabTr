@@ -9,6 +9,7 @@ import numpy as np
 import datetime
 import itertools
 import re
+from scipy.interpolate import interp1d
 
 debug=False
 
@@ -34,27 +35,44 @@ def get_basename_ext(fname):
     return os.path.dirname(fname),fnamenoext,ext
 
 
+
+def get_band_Tsys_min_max(freq_GHz,cfg):
+    '''
+    return tuple(minTsys,maxTsys) for a given frequency and config settings
+    '''
+    if not cfg.has_option('REC','freq'):
+        return cfg.getfloat('Tsys','minTsys'),cfg.getfloat('Tsys','maxTsys')
+
+    print(freq_GHz)    
+    f=np.array([ float(x) for x in cfg['REC']['freq'].split(',')])
+    print(f)
+    v=np.array([ float(x) for x in cfg['REC']['minTsys'].split(',')])
+    v1=interp1d(f,v,kind='nearest-up',fill_value='extrapolate')
+    v=np.array([ float(x) for x in cfg['REC']['maxTsys'].split(',')])
+    v2=interp1d(f,v,kind='nearest-up',fill_value='extrapolate')
+    
+    return v1(freq_GHz),v2(freq_GHz)
 #-----------------------------------------------------------------------------------------------------
-def prefilter(tsysline,block,maxlim):
+def prefilter(tsysline,block,maxlim,minlim=0):
     '''
     handle negative Tsys and values larger than maxlim
     '''
     tsysline=np.array(tsysline);block=np.array(block)
     for i in range(0,len(tsysline)):
         #badcond=(tsysline[i]<0)+(tsysline[i]>maxlim)
-        badcond=[(tsyselement<0 or tsyselement>maxlim) for tsyselement in tsysline[i]]
+        badcond=[(tsyselement<=minlim or tsyselement>maxlim) for tsyselement in tsysline[i]]
         for j in range(0,len(badcond)):
             if badcond[j]==True:
-                goodblock=(block==block[j])*(tsysline[i]>0)*(tsysline[i]<maxlim)
+                goodblock=(block==block[j])*(tsysline[i]>minlim)*(tsysline[i]<maxlim)
                 oklist=np.extract(goodblock,tsysline[i])
                 jcount=j
                 while len(oklist)==0:        #i don't know what to do in this case should i copy values from another scan with the same source? this will not work in the last serie of data 
-                    goodblock=(block==block[jcount])*(tsysline[i]>0)*(tsysline[i]<maxlim)
+                    goodblock=(block==block[jcount])*(tsysline[i]>minlim)*(tsysline[i]<maxlim)
                     oklist=np.extract(goodblock,tsysline[i])
                     jcount=jcount+1
                     if (jcount-j)>20 or (jcount>=len(block)):
                         #oklist=[50]
-                        okcond=(tsysline[i]>0)*(tsysline[i]<maxlim)
+                        okcond=(tsysline[i]>minlim)*(tsysline[i]<maxlim)
                         oklist=np.extract(okcond,tsysline[i])#if nothing good, compute mean of all data, another alternative is delete the whole line but is more difficult to implement and you lose data in all bbc
                         break        
                 gm=1

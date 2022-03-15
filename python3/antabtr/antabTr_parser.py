@@ -86,6 +86,10 @@ USAGE
                             help='extract wisdom from provided log file and antabfs file [default: %(default)s]', 
                             default=False)
 
+        parser.add_argument('--clean', type=str,
+                            help='clean logfile automatically using selected method [default: %(default)s]', 
+                            choices=['ols','gls','rlm'],
+                            default='ols')
 
         # Process arguments
         args = parser.parse_args()

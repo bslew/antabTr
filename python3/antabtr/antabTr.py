@@ -1140,11 +1140,13 @@ def main(argv=None):
 
         tptsys=np.matrix.transpose(np.array(tsysline_aux))
         # tptsys=common.prefilter(tptsys,block_aux,maxlim)    #filter negative values
+        print('tptsys before prefiltering')
+        print(np.array(tptsys).shape)
         tptsys=common.prefilter(tptsys,block_aux,maxTsys,minTsys)    #filter negative values
-
-        # print('tptsys')
+        print('using Tsys prefiltering min/max values: ', minTsys,maxTsys)
+        print('tptsys after prefiltering')
         # print(np.array(tptsys))
-        # print(np.array(tptsys).shape)
+        print(np.array(tptsys).shape)
         # np.savetxt(logFileName+'.tptsys.dump.txt',np.array(tptsys.T))
 
         #loop analizing all bbcs
@@ -1158,10 +1160,10 @@ def main(argv=None):
             fully=tptsys[i][:]
             #if len(fully) != len(time_aux):
             #    continue
+            print('frequency [GHz]', frequencies_GHz[i])
+            print('using Tsys prefiltering min/max values: ', minTsys,maxTsys)
             if args.verbose>0:
                 print('bbclist[i]', bbclist[i])
-                print('frequency [GHz]', frequencies_GHz[i])
-                print('using Tsys prefiltering min/max values: ', minTsys,maxTsys)
             if not debug:
                 if blw.have_wisdom():
                     alltsys_aux.append(blw.load().get_targets())

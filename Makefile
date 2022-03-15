@@ -55,8 +55,8 @@ dw_rxg:
 	cd ${SESSION}/rxg_files && for f in `ls *.rxg`; do dst=`echo $$f | sed -e "s/\b\(.\)/\u\1/"`; mv $$f $$dst; done
 
 plot_rxg:
-	cd ${SESSION}/rxg_files && less Trl.rxg|grep rcp |awk 'NR>3 && NR<65 {print NR,$$2,$$3}'  | ${PLOT_FN} stdin -x 1 -y 2 --xlabel 'freq [MHz]' --ylabel 'Tcal RCP [K]' --title `date +%Y-%m-%d` -o Trl-RCP-`date +%Y-%m-%d`.rxg.jpg --save --show
-	cd ${SESSION}/rxg_files && less Trl.rxg|grep lcp |awk 'NR>3 && NR<65 {print NR,$$2,$$3}'  | ${PLOT_FN} stdin -x 1 -y 2 --xlabel 'freq [MHz]' --ylabel 'Tcal LCP [K]' --title `date +%Y-%m-%d` -o Trl-LCP-`date +%Y-%m-%d`.rxg.jpg --save --show
+	cd ${SESSION}/rxg_files && less Trl.rxg|grep ^rcp |awk 'NF==3 {print NR,$$2,$$3}'  | ${PLOT_FN} stdin -x 1 -y 2 --xlabel 'freq [MHz]' --ylabel 'Tcal RCP [K]' --title `date +%Y-%m-%d` -o Trl-RCP-`date +%Y-%m-%d`.rxg.jpg --save --show
+	cd ${SESSION}/rxg_files && less Trl.rxg|grep ^lcp |awk 'NF==3 {print NR,$$2,$$3}'  | ${PLOT_FN} stdin -x 1 -y 2 --xlabel 'freq [MHz]' --ylabel 'Tcal LCP [K]' --title `date +%Y-%m-%d` -o Trl-LCP-`date +%Y-%m-%d`.rxg.jpg --save --show
 
 logs: projs dw_logs clean_logs fix_logs
 

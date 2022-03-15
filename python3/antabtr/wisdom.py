@@ -54,6 +54,11 @@ class UserWisdom():
         self.load()
         return self.wis['y']
 
+    def get_sections(self):
+        if 'sections' in self.wis.keys():
+            return self.wis['sections']
+        return None
+
     def get_title(self):
         try:
             return self.wis['title']
@@ -67,6 +72,15 @@ class UserWisdom():
         except:
             pass
         return ''
+
+    def get_arguments(self):
+        '''
+        return time data from original file, if exists. If not return point indexes
+        '''
+        if 'x' in self.wis:
+            return self.wis['x']
+        return np.arange(len(self.get_inputs()))
+        
 
     def get_inputs(self):
         if 'X' in self.wis:

@@ -10,8 +10,16 @@ import numpy as np
 def plot_wisdom(args,wd):
     
     fig=plt.figure(figsize=(10,5))
-    plt.plot(wd.get_inputs(), '-o', color='k', label='input')
-    plt.plot(wd.get_targets(), '-o', color='r', ms=3,label='target')
+    x=wd.get_arguments()
+    plt.plot(x,wd.get_inputs(), '-o', color='k', label='input')
+    plt.plot(x,wd.get_targets(), '-o', color='r', ms=3,label='target')
+    sections=wd.get_sections()
+    if isinstance(sections,np.ndarray):
+        sect=np.array([ i for i,x in enumerate(np.array(sections)[:-1]) if sections[i]-sections[i+1]!=0],dtype=int)
+        for l in sect:
+            plt.axvline(x[l],c='b',linestyle=':')
+        
+    
     plt.title('{}, {}'.format(wd.get_title(),wd.get_logfile()))
     plt.legend()
     plt.show()

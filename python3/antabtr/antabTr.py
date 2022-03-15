@@ -506,7 +506,7 @@ class Selection(object):    #clase para la selección manual de los datos
 
             if self.verbose>0:
                 plt.plot(self.inx,self.iny,'g.')
-                plt.plot(self.x,self.fit,'b-')
+                plt.plot(self.x,self.fit,'b-',marker='.')
                 plt.plot(self.outx,self.outy,'r.')
                 plt.plot(self.x,self.low,'b--')
                 plt.plot(self.x,self.up,'b--')
@@ -1068,7 +1068,7 @@ def main(argv=None):
     maxlim=cfg.getfloat('Tsys','maxlim')
     maxTsys=cfg.getfloat('Tsys','maxTsys')
     minTsys=cfg.getfloat('Tsys','minTsys')
-    
+
 
     logData = logF.getLogData() # this should better return a dict or class
     header = logData[0] 
@@ -1115,6 +1115,8 @@ def main(argv=None):
             bbclist.append(auxStr[4].strip(',') + ' ' + auxStr[5].strip(',')+' '+auxStr[9].strip(',')+', Freq '+auxStr[6]+' MHz, '+auxStr[3][0]+'CP' )
             frequencies_GHz.append(float(auxStr[6])/1000)
 
+        minTsys,maxTsys=common.get_band_Tsys_min_max(frequencies_GHz[0],cfg)
+
 
         if bP == (len(setupTime)-1):
             endInd = len(time)    
@@ -1151,7 +1153,6 @@ def main(argv=None):
         removed_idx=[]
         for i in range(0,len(tptsys)):
             print('processing experiment: ',logFileName)
-            minTsys,maxTsys=common.get_band_Tsys_min_max(frequencies_GHz[i],cfg)
             
             blw=wisdom.UserWisdom(cfg=cfg,logFileName=logFileName,idx=i)
             fully=tptsys[i][:]
@@ -1181,12 +1182,14 @@ def main(argv=None):
 
                     get_clean_type=lambda x: 'manual' if x=='ols' else x
                     blw.store({
+                        'x' : x,
                         'X' : results.wisdom['X'],
                         'Y': results.wisdom['Y'],
-                        'ridx' : results.wisdom['ridx'],
+                        'ridx' : np.array(results.wisdom['ridx'],dtype=int),
                         'title' : bbclist[i],
                         'log' : logFileName,
                         'method' : get_clean_type(args.clean),
+                        'sections' : np.array(block_aux,dtype=int),
                               })
                     # blw.store({
                     #     'x' : results.wisdom['x'], 

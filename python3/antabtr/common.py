@@ -43,9 +43,9 @@ def get_band_Tsys_min_max(freq_GHz,cfg):
     if not cfg.has_option('REC','freq'):
         return cfg.getfloat('Tsys','minTsys'),cfg.getfloat('Tsys','maxTsys')
 
-    print(freq_GHz)    
+    # print(freq_GHz)    
     f=np.array([ float(x) for x in cfg['REC']['freq'].split(',')])
-    print(f)
+    # print(f)
     v=np.array([ float(x) for x in cfg['REC']['minTsys'].split(',')])
     v1=interp1d(f,v,kind='nearest-up',fill_value='extrapolate')
     v=np.array([ float(x) for x in cfg['REC']['maxTsys'].split(',')])

@@ -4,7 +4,7 @@
 #----------------------------------------------------------------------------------------------------------------------------------------------------------
 # Alberto Moreno, Pablo de Vicente (Obs. de Yebes) 2015 - 2016
 # Francisco Javier Beltran (Obs. de Yebes) 2016 - 2019
-# Bartosz Lew (Institute of Astronomy, Nicolaus Copernicus University) 2021
+# Bartosz Lew (Institute of Astronomy, Nicolaus Copernicus University) modifications of the original code 2021-2022
 #
 # who      when       what
 # --------     ----------     -----------------------------------------------------------------------------------------------------------------------------
@@ -511,7 +511,7 @@ class Selection(object):    #clase para la selección manual de los datos
                 plt.plot(self.outx,self.outy,'r.')
                 plt.plot(self.x,self.low,'b--')
                 plt.plot(self.x,self.up,'b--')
-                plt.title('best %i' % bf_idx )
+                plt.title('{} (best idx.{:d})'.format(self.title,bf_idx))
                 plt.show()
 
             # self.x=self.inx
@@ -1116,6 +1116,7 @@ def main(argv=None):
     #header,indexline,scanline,tsysline,block,time=readlog(logFileName)
 
     startInd = 0
+    widx=0
     for bP in range(len(setupTime)):
 
         hLines = header[bP].split('\n')[4:]
@@ -1171,7 +1172,8 @@ def main(argv=None):
         for i in range(0,len(tptsys)):
             print('processing experiment: ',logFileName)
             
-            blw=wisdom.UserWisdom(cfg=cfg,logFileName=logFileName,idx=i)
+            blw=wisdom.UserWisdom(cfg=cfg,logFileName=logFileName,idx=widx)
+            widx+=1
             fully=tptsys[i][:]
             #if len(fully) != len(time_aux):
             #    continue
@@ -1235,6 +1237,9 @@ def main(argv=None):
                     t = days + (dt.hour/24.) + (dt.minute/(60.*24.)) + (dt.second/(3600.*24.)) + (dt.microsecond/(3600.*24.*1e6))
                     x.append(t)
 
+                # print(len(x))
+                # for y in alltsys_aux:
+                #     print(len(y))
                 finalplot(x,alltsys_aux,bbclist, bP)
 
         tsyswrite_aux.append(np.matrix.transpose(np.array(alltsys_aux)))

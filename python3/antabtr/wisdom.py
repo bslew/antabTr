@@ -26,10 +26,17 @@ class UserWisdom():
         self.dt=datetime.strftime(datetime.utcnow(),'%Y-%m')
 
     def __str__(self):
-        return repr(self.wis)
+        s=''
+        s+=repr(self.wis)
+        s+="\n"
+        s+='len x: {}\n'.format(len(self.wis['x']))
+        s+='len X: {}\n'.format(len(self.wis['X']))
+        s+='len Y: {}\n'.format(len(self.wis['Y']))
+        s+='removed: {}\n'.format(len(self.wis['ridx']))
+        return s
 
     def __repr__(self):
-        return repr(self.wis)
+        return self.__str__()
 
     def wisdom_info(self):
         print("")

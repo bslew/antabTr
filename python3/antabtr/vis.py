@@ -48,7 +48,7 @@ def plot_wisdom_diffrel(args,wd):
     plt.show()
     
     
-def plot_Tcal(dl : [], labels : [], pol : str):
+def plot_Tcal(dl : [], labels : [], pol : str, freq=None):
     '''
     dl - list of Nx2 arrays
     labels - list of labels
@@ -58,6 +58,9 @@ def plot_Tcal(dl : [], labels : [], pol : str):
     styles=['k-','g-','r-']
     for i,xy in enumerate(dl):
         plt.plot(xy[:,0],xy[:,1],styles[i],label=labels[i])
+        
+    if freq:
+        plt.axvline(freq)
     plt.ylabel('Tcal %s [K]' % pol)
     plt.xlabel('f [MHz]')
     plt.legend()

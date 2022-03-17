@@ -70,6 +70,9 @@ projs: dirs
 	@echo "There are "`cat projects |wc -l`" projects in this session"
 	cat ${LOGDIR}/projects
 
+catsched:
+	less ${SCHED}
+	
 dw_logs:
 	-for l in `cat projects`; do  scp oper@fs6:/usr2/log/$$l"tr".log ${LOGDIR} ; done
 #	scp oper@fs6:/usr2/log/n21k2.log ${LOGDIR}/logs

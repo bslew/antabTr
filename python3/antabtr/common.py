@@ -1424,7 +1424,7 @@ def get_tcal(lofq,pol,freq,station,cfg=None, rxgfiles=None, verbosity=0, **kwarg
 
                     if verbosity>1:
                         print('Interpolated tcal={}'.format(tcal))
-                        vis.plot_Tcal(dl,labels,pol)
+                        vis.plot_Tcal(dl,labels,pol,freq)
                 else:
                     if verbosity>2:
                         print('Ignoring rxg file {} due to wrong frequency range'.format(filename))
@@ -1740,7 +1740,8 @@ class rxgFile:
             freqMax.append(max(flA))
             freqMin.append(min(flA))
 
-        return min(freqMin), max(freqMax)
+        # return min(freqMin), max(freqMax)
+        return max(freqMin), min(freqMax)
 
     # --------------------------------------------------------------------------------------------
     def calvsFreq(self, pol):

@@ -10,6 +10,11 @@ import datetime
 import itertools
 import re
 from scipy.interpolate import interp1d
+import statsmodels.api as sm
+import statsmodels.tsa as smtsa
+import pandas as pd
+from antabtr import vis
+import matplotlib.pyplot as plt
 
 debug=False
 
@@ -22,6 +27,12 @@ def mkdir_p(path):
         else:
             raise  
 
+def moving_avg_1d(X,w):
+    '''
+    X - -1d array-like
+    w - integer defining 
+    '''
+    return np.convolve(X, np.ones(w), 'valid') / w    
 
 def get_basename_ext(fname):
     '''
@@ -1280,6 +1291,7 @@ class logFile:
         return fileRXG
 
 def get_tcal(lofq,pol,freq,station,cfg=None, rxgfiles=None, verbosity=0, **kwargs):
+    print('----- Tcal -----')
     caldir=cfg['CALIB']['rxgDir']
 
     # caldir='/home/blew/programy/antab/data/rxg_files/'
@@ -1287,8 +1299,23 @@ def get_tcal(lofq,pol,freq,station,cfg=None, rxgfiles=None, verbosity=0, **kwarg
     # If rxgfiles are provided check them, otherwhise look into cal dir
     # global rxgfiles
 
+    smooth_rxg='raw'
+    if 'smooth_rxg' in kwargs.keys():
+        smooth_rxg=kwargs['smooth_rxg']
+
+    allow_Tcal_extrapolate=False
+    if 'allow_Tcal_extrapolate' in kwargs.keys():
+        allow_Tcal_extrapolate=kwargs['allow_Tcal_extrapolate']
+
+    if allow_Tcal_extrapolate=='false':
+        allow_Tcal_extrapolate=False
+    elif allow_Tcal_extrapolate=='true':
+        allow_Tcal_extrapolate=True
+
+
+
     if rxgfiles:
-        rxglist = [os.path.join(caldir,i) for i in rxgfiles]
+        rxglist = [os.path.join(caldir,f) for f in rxgfiles]
         # rxglist = rxgfiles
     else:
         rxglist=[]
@@ -1298,46 +1325,110 @@ def get_tcal(lofq,pol,freq,station,cfg=None, rxgfiles=None, verbosity=0, **kwarg
         else:
             if verbosity>0:
                 print("Warning: caldir ({}) not found".format(caldir))
-        for i in lall:
-            if i[-4:]=='.rxg':
-                rxglist.append(os.path.join(caldir,i))                                    #obtain .rxg format files
+        for f in lall:
+            # print(f)
+            if f.endswith('.rxg'):
+                '''
+                select appropriate rxg for this log file
+                '''
+                rxg=rxgFile(os.path.join(caldir,f))
+                fmin,fmax=rxg.freqMinMax()
+                margin=500.
+                fmin-=margin
+                fmax+=margin
+                if fmin<=freq and freq<=fmax:
+                    rxglist.append(os.path.join(caldir,f))
+                    print('Will use {} file'.format(f))
+
     
-    if verbosity>1:
-        print(rxglist)
+
+    
+    # if verbosity>1:
+    #     print(rxglist)
+    if verbosity>0:
+        print('smooth_rxg: ',smooth_rxg)
+        print('requested frequecy: ',freq)
     fileok=False
     tcal=0
     for filename in rxglist:
+        if verbosity>0:
+            print("Using %s RXG file" % filename)
         rxgfilename = filename.split('/')[-1]
         #stationfilename = rxgfilename[3:5].lower()
         # Station code checkout is not necessary if user provides RXG files
         stcode = station[0].upper()+station[1]
         if stcode in filename or rxgfiles:
         #if station == stationfilename or forzado:
-            f=open(filename).read().splitlines()
-            for i in range(0,len(f)):
-                if f[i][0:5]=='range':
-                    rmin=float(f[i].split()[1]);rmax=float(f[i].split()[2])
-                    if rmin<=lofq<=rmax:
-                        fileok=True
-                        if debug:
-                            print("Using %s RXG file" % filename)
-                    else:
-                        break
-                elif f[i][0:5]=='fixed':
-                    rmin=float(f[i].split()[1])-10;rmax=float(f[i].split()[1])+10
-                    if rmin<=lofq<=rmax:
-                        fileok=True
-                        if debug:
-                            print("Using %s RXG file" % filename)
-                    else:
-                        break
-                if fileok and i < len(f)-1:
-                    if f[i][0:3]==pol and f[i+1][0:3]==pol:
-                        f1=float(f[i].split()[1]);f2=float(f[i+1].split()[1])
-                        if f1<=freq<=f2:
-                            t1=float(f[i].split()[2]);t2=float(f[i+1].split()[2])
-                            tcal=t1+(freq-f1)*(t2-t1)/(f2-f1)
+
+            if smooth_rxg=='raw':
+                f=open(filename).read().splitlines()
+                for f in range(0,len(f)):
+                    if f[f][0:5]=='range':
+                        rmin=float(f[f].split()[1]);rmax=float(f[f].split()[2])
+                        if rmin<=lofq<=rmax:
+                            fileok=True
+                        else:
                             break
+                    elif f[f][0:5]=='fixed':
+                        rmin=float(f[f].split()[1])-10;rmax=float(f[f].split()[1])+10
+                        if rmin<=lofq<=rmax:
+                            fileok=True
+                            if debug:
+                                print("Using %s RXG file" % filename)
+                        else:
+                            break
+                    if fileok and f < len(f)-1:
+                        if f[f][0:3]==pol and f[f+1][0:3]==pol:
+                            f1=float(f[f].split()[1]);f2=float(f[f+1].split()[1])
+                            if f1<=freq<=f2:
+                                t1=float(f[f].split()[2]);t2=float(f[f+1].split()[2])
+                                tcal=t1+(freq-f1)*(t2-t1)/(f2-f1)
+                                break
+            else:
+                rxg=rxgFile(filename)
+                fmin,fmax=rxg.freqMinMax()
+                if (fmin<=freq and freq<=fmax) or allow_Tcal_extrapolate:
+                    xy=np.array(rxg.calvsFreq(pol),dtype=float)
+                    dl=[xy]
+                    labels=['measurement']
+#                    xyfit=rxg.get_fitTcal(pol,rxg_fit_method='ols', regressors=smooth_rxg)
+                    xyfit2=rxg.get_fitTcal(pol,rxg_fit_method='rlm', regressors='poly4')
+                    labels.append('%s fit (rlm)' % 'poly4')
+                    dl.append(xyfit2)
+                    
+                    if 'poly' in smooth_rxg:
+                        xyfit3=rxg.get_fitTcal(pol,rxg_fit_method='rlm', regressors=smooth_rxg)
+                        labels.append('%s fit' % smooth_rxg)
+                    elif smooth_rxg=='rolling_avg':
+                        xyfit3=rxg.get_fitTcal(pol,rxg_fit_method='rolling_avg')
+                        labels.append('rolling average')
+                    elif smooth_rxg=='arima':
+                        xyfit3=rxg.get_fitTcal(pol,rxg_fit_method='arima')
+                        labels.append('arima model')
+                    else:
+                        xyfit3=xy
+                        
+                    dl.append(xyfit3)
+                    
+                    
+                    if (fmin<=freq and freq<=fmax) or allow_Tcal_extrapolate:
+                        if (fmin<=freq and freq<=fmax):
+                            fint=interp1d(xyfit2[:,0],xyfit2[:,1])
+                            tcal=fint(freq)
+                        else:
+                            fint=interp1d(xyfit2[:,0],xyfit2[:,1], bounds_error=False,
+                                          fill_value=(xy[0,1],xy[-1,1]))
+                            tcal=fint(freq)
+                            print("WARNING: REQUESTED FREQUENCY ({}) IS NOT COVERED BY RXG FILE ({},{})".format(freq,fmin,fmax))
+                            print("WARNING: USING EXTRAPOLATED T_CAL VALUE ({}) DUE TO allow_Tcal_extrapolate FLAG.".format(tcal))
+
+                    if verbosity>1:
+                        print('Interpolated tcal={}'.format(tcal))
+                        vis.plot_Tcal(dl,labels,pol)
+                else:
+                    if verbosity>2:
+                        print('Ignoring rxg file {} due to wrong frequency range'.format(filename))
+            
             if tcal!=0:
                 break
     if fileok==False:
@@ -1346,7 +1437,7 @@ def get_tcal(lofq,pol,freq,station,cfg=None, rxgfiles=None, verbosity=0, **kwarg
         #sys.exit('A suitable rxg_file was not found')
             print('A suitable rxg_file was not found. Maybe tcal is inside LOG file ("caltemp" tag)')
 
-    if verbosity>2:
+    if verbosity>0:
         print('tcal',tcal)
     if 'enforceTcalIfNoCal' in kwargs.keys():
         if tcal==0:
@@ -1674,6 +1765,46 @@ class rxgFile:
 
         return fcArray
 
+
+
+    def get_fitTcal(self,pol,**kwargs):
+        regressors='poly2'
+        if 'regressors' in kwargs.keys():
+            regressors=kwargs['regressors']
+            
+        method='ols'
+        if 'rxg_fit_method' in kwargs.keys():
+            method=kwargs['rxg_fit_method']
+        xy=np.array(self.calvsFreq(pol),dtype=float)
+        xoffset=np.mean(xy[:,0])
+        x=xy[:,0]-xoffset
+        y=xy[:,1]
+        if regressors=='poly2':
+            X=np.column_stack((x**0,x,x**2))
+        elif regressors=='poly4':
+            X=np.column_stack((x**0,x,x**2,x**3,x**4))
+        elif regressors=='poly8':
+            X=np.column_stack((x**0,x,x**2,x**3,x**4,x**5,x**6,x**7,x**8))
+        # elif regressors=='arima0_1_2':
+        
+        if method=='ols':
+            model = sm.OLS(y, X)
+            res = model.fit().predict()
+        elif method=='rlm':
+            model = sm.RLM(y, X)
+            res = model.fit().predict()
+        elif method=='arima':
+            model=smtsa.arima.model.ARIMA(y, order=(1, 1, 1))
+            res = model.fit().predict()
+        elif method=='rolling_avg':
+            df=pd.DataFrame(np.vstack((x,y)).T,columns=['x','y'])
+            ravg=df.rolling(8,min_periods=1,center=True).mean().to_numpy()
+            # ravg=np.vstack(([[x[0],y[0]]],ravg,[[x[-1],y[-1]]]))
+            ravg[:,0]+=xoffset
+            return ravg
+        else:
+            res=y
+        return np.vstack((x+xoffset,res)).T
 
 class AntabFile():
     def __init__(self):

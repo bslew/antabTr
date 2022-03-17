@@ -48,4 +48,18 @@ def plot_wisdom_diffrel(args,wd):
     plt.show()
     
     
+def plot_Tcal(dl : [], labels : [], pol : str):
+    '''
+    dl - list of Nx2 arrays
+    labels - list of labels
+    pol- polarization string
+    '''
+    fig=plt.figure(figsize=(10,8))
+    styles=['k-','g-','r-']
+    for i,xy in enumerate(dl):
+        plt.plot(xy[:,0],xy[:,1],styles[i],label=labels[i])
+    plt.ylabel('Tcal %s [K]' % pol)
+    plt.xlabel('f [MHz]')
+    plt.legend()
+    plt.show()
     

@@ -86,10 +86,21 @@ USAGE
                             help='extract wisdom from provided log file and antabfs file [default: %(default)s]', 
                             default=False)
 
+        # parser.add_argument('--smooth_rxg', action='store_true',
+        #                     help='Create a smoothed version of rxg files [default: %(default)s]', 
+        #                     default=False)
+
         parser.add_argument('--clean', type=str,
                             help='clean logfile automatically using selected method [default: %(default)s]', 
                             choices=['ols','gls','rlm'],
                             default='ols')
+
+        parser.add_argument('--maxTsys', type=str,
+                            help='Maximal Tsys value for prefilter. This value, if given overrides the values from the config file [default: %(default)s]', 
+                            default='')
+        parser.add_argument('--minTsys', type=str,
+                            help='Minimal Tsys value for prefilter. This value, if given overrides the values from the config file [default: %(default)s]', 
+                            default='')
 
         # Process arguments
         args = parser.parse_args()

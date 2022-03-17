@@ -7,7 +7,7 @@ name="${f%.*}"
 echo ${name%.*}
 
 if [ ! -f $name.antabfs ]; then
-    antabTr.py $fname --clean rlm -v
+    antabTr.py $fname --clean rlm $2
 else
     echo $name.antabfs already exists, skipping
 fi

@@ -50,9 +50,9 @@ dw_example:
 	scp oper@fs6:/usr2/log/gm076tr.log log
 
 dw_rxg:
-	-mkdir -p ${SESSION}/rxg_files
-	scp -p  oper@fs6:/usr2/control/rxg_evn/*.rxg ${SESSION}/rxg_files
-	cd ${SESSION}/rxg_files && for f in `ls *.rxg`; do dst=`echo $$f | sed -e "s/\b\(.\)/\u\1/"`; mv $$f $$dst; done
+	-mkdir -p ${SESSION}/rxg_files/tmp
+	scp -p  oper@fs6:/usr2/control/rxg_evn/*.rxg ${SESSION}/rxg_files/tmp
+	cd ${SESSION}/rxg_files/tmp && for f in `ls *.rxg`; do dst=`echo $$f | sed -e "s/\b\(.\)/\u\1/"`; mv $$f ../$$dst; done
 
 plot_rxg:
 	cd ${SESSION}/rxg_files && less Trl.rxg|grep ^rcp |awk 'NF==3 {print NR,$$2,$$3}'  | ${PLOT_FN} stdin -x 1 -y 2 --xlabel 'freq [MHz]' --ylabel 'Tcal RCP [K]' --title `date +%Y-%m-%d` -o Trl-RCP-`date +%Y-%m-%d`.rxg.jpg --save --show
@@ -86,7 +86,8 @@ fix_logs:
 check_venv:
 	source ${VENV}/bin/activate
 antab: 
-	. ${VENV}/bin/activate && cd ${LOGDIR} && for l in `ls *.log`; do antabTr.sh $$l; done
+#	. ${VENV}/bin/activate && cd ${LOGDIR} && for l in `ls *.log`; do antabTr.sh $$l ${VERB}; done
+	. ${VENV}/bin/activate && cd ${LOGDIR} && for l in `ls *.log`; do echo "Processing $$l"; antabTr.py --clean rlm $$l ${VERB}; done
 
 #archive_rxg:
 #	-rm -r ${LOGDIR}/rxg_files

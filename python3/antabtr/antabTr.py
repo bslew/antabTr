@@ -492,7 +492,7 @@ class Selection(object):    #clase para la selección manual de los datos
                 if self.verbose>2:
                     fig=plt.figure(figsize=(14,10))
                     plt.plot(self.inx,self.iny,'k.')
-                    plt.plot(self.inx,self.fit,'b-')
+                    plt.plot(self.x,self.fit,'b-',marker='.')
                     plt.plot(self.outx,self.outy,'r.')
                     plt.plot(self.x,self.low,'k--')
                     plt.plot(self.x,self.up,'k--')
@@ -505,6 +505,7 @@ class Selection(object):    #clase para la selección manual de los datos
             self.fit,self.low,self.up,self.inx,self.iny,self.outx,self.outy,ridx=res_all[bf_idx]
 
             if self.verbose>0:
+                fig=plt.figure(figsize=(14,10))
                 plt.plot(self.inx,self.iny,'g.')
                 plt.plot(self.x,self.fit,'b-',marker='.')
                 plt.plot(self.outx,self.outy,'r.')
@@ -1026,7 +1027,15 @@ def main(argv=None):
         wd=wisdom.UserWisdom(cfg).load(args.print_wisdom)
         print(wd)
         exit(0);
+
+    if args.extract_wisdom:
+        wext=wisdom.WisdomExtractor(args,cfg)
+        wext.extract_wisdom()
+        exit(0);
+
     
+    smooth_rxg=cfg['CALIB']['smooth_rxg']
+    allow_Tcal_extrapolate=cfg['CALIB']['extrapolate']
     
     if len(args.paths)==0:
         print("No log files provided")
@@ -1045,17 +1054,19 @@ def main(argv=None):
         print("The provided file has unusual extension. Are you sure you provided log file ? Better stop now.")
         sys.exit(1)
 
-
-    if args.extract_wisdom:
-        wext=wisdom.WisdomExtractor(args,cfg)
-        wext.extract_wisdom()
-        exit(0);
-
-
 #    antabFile = os.path.dirname(os.path.abspath(__file__)) + ('/%s.antabfs' % (logFileName.split('/')[-1].split('.')[0]))
     antabFile = os.path.join(os.path.dirname(logFileName),'%s.antabfs' % (logFileName.split('/')[-1].split('.')[0]))
 
-    logF = common.logFile(logFileName,cfg=cfg,rxgfiles=rxgfiles, verbosity=args.verbose)
+    if os.path.isfile(antabFile):
+        print("{} file already exists, skipping".format(antabFile))
+        exit(0)
+    
+
+
+    logF = common.logFile(logFileName,cfg=cfg,rxgfiles=rxgfiles, verbosity=args.verbose,
+                          smooth_rxg=smooth_rxg,
+                          allow_Tcal_extrapolate=allow_Tcal_extrapolate,
+                          )
     #antabH = antabHeader(logFileName)
     antabH = antabHeader(logF,cfg=cfg)  #FJB
 
@@ -1116,6 +1127,10 @@ def main(argv=None):
             frequencies_GHz.append(float(auxStr[6])/1000)
 
         minTsys,maxTsys=common.get_band_Tsys_min_max(frequencies_GHz[0],cfg)
+        if args.minTsys!='':
+            minTsys=float(args.minTsys)
+        if args.maxTsys!='':
+            maxTsys=float(args.maxTsys)
 
 
         if bP == (len(setupTime)-1):
@@ -1172,6 +1187,7 @@ def main(argv=None):
                     results=Selection(x,fully,block_aux,bbclist[i],
                                       clean_type=args.clean,
                                       alpha=cfg.getfloat('clean','alpha'),
+                                      allow_Tcal_extrapolate=allow_Tcal_extrapolate,
                                       verbose=args.verbose)
                     delIndX = results.getDeletedX()
                     delIndX.reverse()

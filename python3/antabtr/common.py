@@ -531,7 +531,9 @@ class logFile:
 
                 fchan=lofq+bbcFreq-bw_aux/2.
                 tcal=get_tcal(lofq,pol,fchan, self.station().lower(),cfg=self.cfg,rxgfiles=self.rxgfiles, verbosity=self.verbosity, **kwargs)
-
+                if tcal==0:
+                    print("ERROR: Tcal cannot be zero. Will quit now.")
+                    exit(0)
 
 
                 if not self.__caltempRead[self.__currentSetup]:
@@ -1305,7 +1307,7 @@ def get_tcal(lofq,pol,freq,station,cfg=None, rxgfiles=None, verbosity=0, **kwarg
 
     allow_Tcal_extrapolate=False
     if 'allow_Tcal_extrapolate' in kwargs.keys():
-        allow_Tcal_extrapolate=kwargs['allow_Tcal_extrapolate']
+        allow_Tcal_extrapolate=kwargs['allow_Tcal_extrapolate'].lower()
 
     if allow_Tcal_extrapolate=='false':
         allow_Tcal_extrapolate=False
@@ -1421,13 +1423,15 @@ def get_tcal(lofq,pol,freq,station,cfg=None, rxgfiles=None, verbosity=0, **kwarg
                             tcal=fint(freq)
                             print("WARNING: REQUESTED FREQUENCY ({}) IS NOT COVERED BY RXG FILE ({},{})".format(freq,fmin,fmax))
                             print("WARNING: USING EXTRAPOLATED T_CAL VALUE ({}) DUE TO allow_Tcal_extrapolate FLAG.".format(tcal))
-
+                        
+                        
                     if verbosity>1:
                         print('Interpolated tcal={}'.format(tcal))
                         vis.plot_Tcal(dl,labels,pol,freq)
                 else:
-                    if verbosity>2:
-                        print('Ignoring rxg file {} due to wrong frequency range'.format(filename))
+                    print("ERROR: REQUESTED FREQUENCY ({}) IS NOT COVERED BY RXG FILE ({},{}) and extrapolate is set to {} in config file".format(freq,fmin,fmax,allow_Tcal_extrapolate))
+                    # if verbosity>2:
+                    #     print('Ignoring rxg file {} due to wrong frequency range'.format(filename))
             
             if tcal!=0:
                 break

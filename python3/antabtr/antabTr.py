@@ -383,8 +383,13 @@ class Selection(object):    #clase para la selección manual de los datos
         self.press = False
         #self.tolerance=0.05
         self.tolerance=0.1
+        
+        self.experimentName=''
+        if 'experimentName' in kwargs.keys():
+            self.experimentName=kwargs['experimentName']
         if 'alpha' in kwargs.keys():
             self.tolerance=kwargs['alpha']
+            
         
         self.clean_type='ols'
         if 'clean_type' in kwargs.keys():
@@ -511,7 +516,7 @@ class Selection(object):    #clase para la selección manual de los datos
                 plt.plot(self.outx,self.outy,'r.')
                 plt.plot(self.x,self.low,'b--')
                 plt.plot(self.x,self.up,'b--')
-                plt.title('{} (best idx.{:d})'.format(self.title,bf_idx))
+                plt.title('{}, {} (best idx.{:d})'.format(self.experimentName,self.title,bf_idx))
                 plt.show()
 
             # self.x=self.inx
@@ -701,16 +706,18 @@ def smfit(x,y):        #fit data, lower and upper limits
         nodata=np.array([[],[],[]])
         return nodata
 #-----------------------------------------------------------------------------------------------------
-def finalplot(x,y,bbclist,partNum):    #plot all procesed data
+def finalplot(x,y,bbclist,partNum, experimentName=''):    #plot all procesed data
     style=['bo','go','ro','co','mo','yo','ko','wo','b*','g*','r*','c*','m*','y*','k*','w*','b^','g^','r^','c^','m^','y^','k^','w^','bs','gs','rs','cs','ms','ys','ks','ws']
     fig = plt.figure(figsize=(16,11))
     ax = fig.add_subplot(111)
+    ax.set_facecolor('grey')
+    plt.title(experimentName)
     plt.suptitle('All BBCs, Part %d' % (partNum+1))
     plt.xlabel('Time')
     plt.ylabel('Tsys [K]')
     plt.grid()
     for i in range(0,len(y)):
-        plt.plot(x,y[i],style[i],label='%s'%bbclist[i])
+        plt.plot(x,y[i],style[i],label='%s'%bbclist[i],ms=2)
     plt.legend(loc='best')
     xmin = min(x)
     xmax = max(x)
@@ -1190,7 +1197,8 @@ def main(argv=None):
                                       clean_type=args.clean,
                                       alpha=cfg.getfloat('clean','alpha'),
                                       allow_Tcal_extrapolate=allow_Tcal_extrapolate,
-                                      verbose=args.verbose)
+                                      verbose=args.verbose,
+                                      experimentName=logFileName[:-4])
                     delIndX = results.getDeletedX()
                     delIndX.reverse()
                     if delIndX != []:
@@ -1240,7 +1248,7 @@ def main(argv=None):
                 # print(len(x))
                 # for y in alltsys_aux:
                 #     print(len(y))
-                finalplot(x,alltsys_aux,bbclist, bP)
+                finalplot(x,alltsys_aux,bbclist, bP, experimentName=logFileName[:-4])
 
         tsyswrite_aux.append(np.matrix.transpose(np.array(alltsys_aux)))
         timewrite_aux.append(time_aux)

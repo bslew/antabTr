@@ -72,7 +72,7 @@ projs: dirs
 
 catsched:
 	less ${SCHED}
-	
+
 dw_logs:
 	-for l in `cat projects`; do  scp oper@fs6:/usr2/log/$$l"tr".log ${LOGDIR} ; done
 #	scp oper@fs6:/usr2/log/n21k2.log ${LOGDIR}/logs
@@ -90,8 +90,16 @@ check_venv:
 	source ${VENV}/bin/activate
 antab: 
 #	. ${VENV}/bin/activate && cd ${LOGDIR} && for l in `ls *.log`; do antabTr.sh $$l ${VERB}; done
-	. ${VENV}/bin/activate && cd ${LOGDIR} && for l in `ls *.log`; do echo "Processing $$l"; antabTr.py --clean rlm $$l ${VERB}; done
+#	. ${VENV}/bin/activate && cd ${LOGDIR} && for l in `ls *.log`; do echo "Processing $$l"; antabTr.py --clean rlm $$l ${VERB}; done
+	. ${VENV}/bin/activate && cd ${LOGDIR} && for l in `ls *.log`; do echo "Processing "$${l%.*}; if [ -f $${l%.*}.antabfs ]; then echo "antab already exists, skipping"; else antabTr.py --clean rlm $$l ${VERB}; fi ; done
+#	cd ${LOGDIR}/ && $(foreach l, $(wildcard *), echo "Processing $l"; )
+#	if [ -f $(basename $l).antabfs ]; then echo "antab already exists, skipping" else antabTr.py --clean rlm $(basename $l) ${VERB}; fi \
 
+chkext:
+	echo $(info $(basename ra005tr.log))
+	echo ra005tr.log
+#	f=ra005tr.log && echo ${f%.*}
+	. ${VENV}/bin/activate && cd ${LOGDIR} && for l in `ls *.log`; do echo $${l%.*}; done
 #archive_rxg:
 #	-rm -r ${LOGDIR}/rxg_files
 #	cp -rp data/rxg_files  ${LOGDIR}/rxg_files-`date +%Y-%m-%d`

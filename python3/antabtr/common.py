@@ -1402,7 +1402,8 @@ def get_tcal(lofq,pol,freq,station,cfg=None, rxgfiles=None, verbosity=0, **kwarg
                         xyfit3=rxg.get_fitTcal(pol,rxg_fit_method='rlm', regressors=smooth_rxg)
                         labels.append('%s fit' % smooth_rxg)
                     elif smooth_rxg=='rolling_avg':
-                        xyfit3=rxg.get_fitTcal(pol,rxg_fit_method='rolling_avg')
+                        xyfit3=rxg.get_fitTcal(pol,rxg_fit_method='rolling_avg',
+                                               rolling_avg_samples=kwargs['rolling_avg_samples'])
                         labels.append('rolling average')
                     elif smooth_rxg=='arima':
                         xyfit3=rxg.get_fitTcal(pol,rxg_fit_method='arima')
@@ -1415,10 +1416,12 @@ def get_tcal(lofq,pol,freq,station,cfg=None, rxgfiles=None, verbosity=0, **kwarg
                     
                     if (fmin<=freq and freq<=fmax) or allow_Tcal_extrapolate:
                         if (fmin<=freq and freq<=fmax):
-                            fint=interp1d(xyfit2[:,0],xyfit2[:,1])
+                            # fint=interp1d(xyfit3[:,0],xyfit3[:,1])
+                            fint=interp1d(xyfit3[:,0],xyfit3[:,1], bounds_error=False,
+                                          fill_value=(xy[0,1],xy[-1,1]))
                             tcal=fint(freq)
                         else:
-                            fint=interp1d(xyfit2[:,0],xyfit2[:,1], bounds_error=False,
+                            fint=interp1d(xyfit3[:,0],xyfit3[:,1], bounds_error=False,
                                           fill_value=(xy[0,1],xy[-1,1]))
                             tcal=fint(freq)
                             print("WARNING: REQUESTED FREQUENCY ({}) IS NOT COVERED BY RXG FILE ({},{})".format(freq,fmin,fmax))
@@ -1572,12 +1575,21 @@ class rxgFile:
             if line[0] == '*':
                 # If we find a * after having reached the 7th line that means we have already read
                 # all lines in that section => Turn it off and break (get out of the loop)
-                if line7:
-                    line7 = False
-                    break
+                #
+                # BL comment: this is not needed. The 7th line ends with 'end_tcal_table' so
+                # we can check for that, while retaining possibility to comment out noisy lines in RXG files
+                # if line7:
+                #     line7 = False
+                #     break
+                # BL: this whole thing could be rewritten MUCH simpler !!
                 if line9:
                     line9 = False
                     break
+            elif line[0] == 'end_tcal_table':
+                if line7:
+                    line7 = False
+                    break
+                
             else:
                 if i == lineNumber:
                     if lineNumber == 7:
@@ -1716,7 +1728,9 @@ class rxgFile:
         tcArray = self.tcal()
 
         for element in tcArray:
+            # print(element)
             listtc = element.split()
+            
             if len(listtc) == 0:
                 continue
             elif listtc[0] == 'rcp':
@@ -1726,6 +1740,14 @@ class rxgFile:
                 freqLCPArray.append( float(listtc[1]) )
                 tcalLCPArray.append( float(listtc[2]) )
 
+        sR=np.argsort(freqRCPArray)
+        sL=np.argsort(freqLCPArray)
+        freqRCPArray=np.array(freqRCPArray)[sR].tolist()
+        tcalRCPArray=np.array(tcalRCPArray)[sR].tolist()
+        freqLCPArray=np.array(freqLCPArray)[sL].tolist()
+        tcalLCPArray=np.array(tcalLCPArray)[sL].tolist()
+        
+        # print(freqRCPArray, tcalRCPArray, freqLCPArray, tcalLCPArray)
         return freqRCPArray, tcalRCPArray, freqLCPArray, tcalLCPArray
 
     # --------------------------------------------------------------------------------------------
@@ -1803,7 +1825,7 @@ class rxgFile:
             res = model.fit().predict()
         elif method=='rolling_avg':
             df=pd.DataFrame(np.vstack((x,y)).T,columns=['x','y'])
-            ravg=df.rolling(8,min_periods=1,center=True).mean().to_numpy()
+            ravg=df.rolling(int(kwargs['rolling_avg_samples']),min_periods=1,center=True).mean().to_numpy()
             # ravg=np.vstack(([[x[0],y[0]]],ravg,[[x[-1],y[-1]]]))
             ravg[:,0]+=xoffset
             return ravg

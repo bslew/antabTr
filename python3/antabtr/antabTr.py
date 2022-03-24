@@ -482,13 +482,23 @@ class Selection(object):    #clase para la selección manual de los datos
                 counts=np.array([ len(segments[segments==x]) for x in set(segments) ])
                 segment_sigma=np.array([ np.std(self.y[segments==x]) for x in set(segments) ])
                 # print('segment_sigma',segment_sigma)
-                res=outliers(segments,self.x,self.y,self.tolerance,method=self.clean_type, verbose=self.verbose,sigma=np.median(segment_sigma))
+                segment_sigma=np.median(segment_sigma)
+                if 'all_scans_noise_estimate' in kwargs.keys():
+                    if kwargs['all_scans_noise_estimate']=='median':
+                        segment_sigma=np.median(segment_sigma)
+                    elif kwargs['all_scans_noise_estimate']=='mean':
+                        segment_sigma=np.mean(segment_sigma)
+                    else:
+                        print('ERROR: incorrect all_scans_noise_estimate parameter value')
+                        print("Will use value: ",segment_sigma)
+                        
+                res=outliers(segments,self.x,self.y,self.tolerance,method=self.clean_type, verbose=self.verbose,sigma=segment_sigma)
                 # res=outliers(segments,self.x,self.y,self.tolerance,method=self.clean_type, verbose=self.verbose,sigma=np.mean(segment_sigma))
                 self.fit,self.low,self.up,self.inx,self.iny,self.outx,self.outy,ridx=res
                 res_all.append(res)
                 median_segment_size=np.median(counts)
                 x2=np.mean((self.fit-self.y)**2)/median_segment_size
-                if self.verbose>1:
+                if self.verbose>0:
                     print('x2: {}, median_segment_size: {}'.format(x2,median_segment_size))
                     print('np.median(segment_sigma): ',np.median(segment_sigma))
                     print('np.mean(segment_sigma): ',np.mean(segment_sigma))
@@ -1043,6 +1053,7 @@ def main(argv=None):
     
     smooth_rxg=cfg['CALIB']['smooth_rxg']
     allow_Tcal_extrapolate=cfg['CALIB']['extrapolate']
+    all_scans_noise_estimate=cfg['clean']['all_scans_noise_estimate']
     
     if len(args.paths)==0:
         print("No log files provided")
@@ -1072,6 +1083,7 @@ def main(argv=None):
 
     logF = common.logFile(logFileName,cfg=cfg,rxgfiles=rxgfiles, verbosity=args.verbose,
                           smooth_rxg=smooth_rxg,
+                          rolling_avg_samples=cfg.getint('CALIB','rolling_avg_samples'),
                           allow_Tcal_extrapolate=allow_Tcal_extrapolate,
                           )
     #antabH = antabHeader(logFileName)
@@ -1196,6 +1208,7 @@ def main(argv=None):
                     results=Selection(x,fully,block_aux,bbclist[i],
                                       clean_type=args.clean,
                                       alpha=cfg.getfloat('clean','alpha'),
+                                      all_scans_noise_estimate=all_scans_noise_estimate,
                                       allow_Tcal_extrapolate=allow_Tcal_extrapolate,
                                       verbose=args.verbose,
                                       experimentName=logFileName[:-4])

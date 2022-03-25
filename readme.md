@@ -111,7 +111,7 @@ At increased verbosity, the points that are to be removed are plotted along with
 model and confidence contours. Closing the plot window will save wisdom and the points will be 
 automatically marked as outliers to be cleaned.
 
-** For the data points that are classified as outliers (red) the best fit model Tsys values are used instead. Data that are not classified as outliers (green) are retained. This is also the case for the original version of the program. **
+**For the data points that are classified as outliers (red) the best fit model Tsys values are used instead. Data that are not classified as outliers (green) are retained. This is also the case for the original version of the program.**
 
 ```
 antabTr.py --clean rlm -v ea065btr.log

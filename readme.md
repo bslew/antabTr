@@ -19,8 +19,7 @@ The program also:
 - provides basic plotting options for the gathered outputs and
 - introduces experimental, Makefile-based, antab files processing pipeline.
 
-This version of the program is developed at Toruń VLBI station, but the core functionality
-related to processing logs and generating antabs is largely unchanged and compatible with
+This version of the program is developed at Toruń VLBI station, **but the core functionality related to reading logs and generating antabs is largely unchanged** and compatible with
 antabfs program version '20201123'.
 
 The name of the program "antabTr" is a variation of the original name and indicates

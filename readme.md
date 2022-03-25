@@ -79,20 +79,92 @@ antabTr.py --help
 ```
 
 ## Generating antab files
+
+Any pre-processing of the log files that were necessary before (e.g. fix-tsys.py) 
+should also be done with `antabTr.py` program. These steps are included in the simple 
+Makefile pipeline.
+
+### Simplest use case is the use compatible with original version of the program
 Go to your logs directory and use the antabTr.py program instead of antabfs.py:
 
 ```
 antabTr.py ea065btr.log
 ```
 
-Any pre-processing of the log files that were necessary before should also be
-done with `antabTr.py` program
+### Generating antabfs files in semi-automatic way
+The standard way of operation of the program is to detect strong outliers via linear
+regression of linear model fitted per scan basis. The Tsys outliers are considered of 
+points stand out by more than 10% from the Ordinary Least Squares best fit.
+The outliers candidatas are plotted in red and it is up to user to mark them and remove them.
+This behaviour is enabled via --clean ols option (default)
 
+This version of the program allows also for modifications to this approach by implementing
+Robust Linear Model of the statmodels that penalizes outliers. 
+This is done by adding --clean rlm option at the command line.
+Furthermore, although the best fit models are still done per scan basis the the detection of the 
+outliers is done by considering median (or mean depending on configuation settings) 1-sigma
+noise levels in all scans in a given BBC. The outliers are marked in red as before based on
+gaussian confidence regions defined by alpha value specified in the configuration file.
+By defauly alpha=0.1 which detects points that lie outside 90% confidence region.
+Finally, the user doesn't need to remove the outliers manually as it is done automatically.
+At increased verbosity, the points that are to be removed are plotted along with the best fit 
+model and confidence contours. Closing the plot window will save wisdom and the points will be 
+automatically marked as outliers to be cleaned.
+
+** For the data points that are classified as outliers (red) the best fit model Tsys values are used instead. Data that are not classified as outliers (green) are retained. This is also the case for the original version of the program. **
+
+```
+antabTr.py --clean rlm -v ea065btr.log
+```
+
+At even higher verbosity
+
+```
+antabTr.py --clean rlm -v -v ea065btr.log
+```
+
+the user is presented with the plots showing the coverage of the Tcal from RXG files for the 
+observation BBC frequency (vertical line) as well as with the Tcal model to be used for interpolation. 
+This is to verify that reasonable model is being used and that RXG actually covers the
+needed frequency range.
+
+![Choosing Tcal fitting function](docs/Tcal-fitting.png)
+
+In this example the rolling average was set as fitting function and compared with
+4th order polynomial fit (green). The exact details of which fitting function should be used
+are defined in the antabfs.ini config file in section [CALIB].
+For this example, two Tcal observation sessions were merged into RXG file (hence the 
+zig-zag shape of Tcal black line indicating the uncertainty levels). 
+The fitting function used for the calibration is always plotted in red. Typically 4-th order
+polynomial does a good job. For other options see antabfs.ini config file. The original
+approach from python2 version of the program was linear interpolation between data points 
+nearest to the observation frequency. (This behaviour is still available by setting
+smooth_rxg=raw in the config file.)
+
+If Tcal is not measured for the required frequency extrapolations are possible.
+
+### Choosing Tsys rejection thresholds
+
+In the config file it is possible to specify data rejection thresholds globally or per
+observation frequency basis. E.g. for Toruń station at C-band the typical Tsys would be
+around 30-40K. However, for certain observations (e.g. very strong sources such as Crab nebula)
+Tsys might be significantly higher in which case the config file setting may be inappropriate.
+The setting can be overriden from command line by explicitly providing --minTsys and --maxTsys
+values for a given logfile or for a given BBC in that log. This may be useful with
+--clean rlm options where the user need not remove outliers manually, but merely can view whether
+the detected points are reasonable eg:
+
+```
+antabTr.py --clean rlm -v ea065btr.log --maxTsys 150 --minTsys 20
+```
+
+With this setting all Tsys points outside [20,150] range will be removed in at preprocessing
+stage.
 
 
 # Wisdom
 
-antabTr.py program should be used in the same way as the original antabfs.py program for 
+antabTr.py program can be used in the same way as the original antabfs.py program for 
 generating antab files but
 this version will automatically store the information about how the user cleans the data.
 That information is stored in wisdom files.

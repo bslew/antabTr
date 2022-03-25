@@ -10,6 +10,9 @@ The program also:
 - unifies tabs/spaces convention of the original program, 
 - improves modularization/re-usability of the code,
 - provides support for configuration files and command line parser, 
+- supports various fitting functions for Tcal,
+- supports semi-automatic outliers rejection,
+- provides configuration and command line level options to control Tsys rejection ranges,
 - helps extracting data from log/antabfs files (e.g from past EVN sessions),
 - provides basic plotting options for the gathered outputs and
 - introduces experimental, Makefile-based, antab files processing pipeline.

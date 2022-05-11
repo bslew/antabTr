@@ -73,7 +73,7 @@ projs: dirs
 catsched:
 	less ${SCHED}
 
-dw_logs:
+dw_logs: dirs
 	-for l in `cat projects`; do  scp oper@fs6:/usr2/log/$$l"tr".log ${LOGDIR} ; done
 #	scp oper@fs6:/usr2/log/n21k2.log ${LOGDIR}/logs
 #	 projects ${LOGDIR}
